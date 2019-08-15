@@ -35,9 +35,21 @@ print()
 skip_frac = input("Do you want to skip fractional area vs. size and just plot the graphs? ('y' for yes and 'n' for no'): ")
 print('-------------------------------------------------------\n')
 if skip_frac == 'n' or skip_frac == 'N':
+    #Gets the .txt file
+    dir_name_list = os.listdir(os.getcwd())
+    name = [x for x in dir_name_list if x.endswith('.txt')]
+    file = open(name[0],'r')
+    file.readline()
+    second_line = file.readline()
+    split_second_line = second_line.split()
+    txt_file_name = split_second_line[1]
+    print('The current run description from the text file is:', txt_file_name)
+    print('-------------------------------------------------')
+    file.close()
     time_underscore = int(input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0. Only for the .txt file with data) \
 Ex: Exo_BurstMM_0.5_TLD_2018-12-18_A06.fsa is a sample file name. The time value for this file is 0.5, which is after the 2nd underscore \
 so you would enter in 2 in this case: "))
+
     #well_underscore = int(input("Please enter after which underscore the well num is: "))
     def filtered_data(name):
         # file_name = 'Burst on PThio DNA.txt'
@@ -554,7 +566,7 @@ def divisors(n):
     factors = []
     for i in range(1, int(n**0.5)+1):
         if n%i == 0:
-            factors.append((i,int(n/i)))
+            factors.append([i,int(n/i)])
     return factors
 
 if skip_frac == 'y' or skip_frac == 'Y':
@@ -569,7 +581,14 @@ if skip_align == 'n' or skip_align == 'N':
     print('Now aligning peaks....')
     print('--------------------------------------------------------------')
     print()
-    time_underscore = int(input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0: "))
+    dir_name = os.listdir(os.getcwd())
+    # Checks number of .fsa files in the directory
+    fsa_names = [x for x in dir_name if x.endswith('.fsa')]
+    length_dir = len([x for x in dir_name if x.endswith('.fsa')])
+    print('One of the detected .fsa file names is:',fsa_names[0])
+    print('------------------------------------------------------------')
+    time_underscore = int(
+        input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0: "))
     #In order to get the text file name from the folder
     #Gets the x values
     #a = [x for x in range(len(trace['DATA1'])+1)]
@@ -593,10 +612,7 @@ if skip_align == 'n' or skip_align == 'N':
     ##    length_dir = len(os.listdir(fsa_dir + '/'))
     ##    length_dir_name = os.listdir(fsa_dir + '/')
 
-    dir_name = os.listdir(os.getcwd())
-    #Checks number of .fsa files in the directory
-    fsa_names = [x for x in dir_name if x.endswith('.fsa')]
-    length_dir = len([x for x in dir_name if x.endswith('.fsa')])
+
     time_list = []
     #Adjusts to make the zero time point the first .fsa file in the directory
     for i in range(len(fsa_names)):
@@ -611,6 +627,7 @@ if skip_align == 'n' or skip_align == 'N':
     print('Here are time time values detected in the folder with the .fsa files:')
     print('--------------------------------------------------------------\n')
     for time in time_list: print(time,end='\n')
+
     print()
     fsa_names_sorted = []
 
@@ -674,18 +691,25 @@ if skip_align == 'n' or skip_align == 'N':
     factors = divisors(num_pts)
     rev_factors = []
     for i in range(len(factors)):
-        rev_factors.append((factors[i][1],factors[i][0]))
-
-    all_factors = list(zip(factors,rev_factors))
+        rev_factors.append([factors[i][1],factors[i][0]])
+    for x in rev_factors:
+        if x not in factors: factors.append(x)
+    #all_factors = list(zip(factors,rev_factors))
+    dim_table = pd.DataFrame(factors,columns=['Number of Rows','Number of Columns'])
+    dim_table.index.name = 'Num of Combinations'
+    dim_table.index +=1
     print('Here are all the possible dimensions of the figure. Please choose which one you want:')
-    for i in range(len(all_factors)):
-        if i!= len(all_factors)-1:
-            print(all_factors[i])
-        else:
-            print(all_factors[i])
+    print('----------------------------------------------------------------------------------------')
+    print(dim_table)
+
+    # for i in range(len(all_factors)):
+    #     if i!= len(all_factors)-1:
+    #         print(all_factors[i])
+    #     else:
+    #         print(all_factors[i])
     print('------------------------------------------------------------------------------')
-    rows = int(input("Please enter in the number of rows: "))
-    cols = int(input("Please enter in the number of columns: "))
+    rows = int(input("Please enter in the desired number of rows: "))
+    cols = int(input("Please enter in the desired number of columns: "))
     #Creates figure, axis objects for subplot
     fig,ax = plt.subplots(rows,cols,sharex=True,sharey=True)
     # fig = plt.figure()
