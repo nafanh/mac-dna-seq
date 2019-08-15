@@ -581,14 +581,40 @@ if skip_align == 'n' or skip_align == 'N':
     print('Now aligning peaks....')
     print('--------------------------------------------------------------')
     print()
-    dir_name = os.listdir(os.getcwd())
-    # Checks number of .fsa files in the directory
-    fsa_names = [x for x in dir_name if x.endswith('.fsa')]
-    length_dir = len([x for x in dir_name if x.endswith('.fsa')])
-    print('One of the detected .fsa file names is:',fsa_names[0])
-    print('------------------------------------------------------------')
-    time_underscore = int(
-        input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0: "))
+    folder_check = input("If your .fsa files are in a folder, press 'y' to continue, else press 'n': ")
+    # This is works for mac
+
+    if folder_check == 'y' or folder_check == 'Y':
+        fsa_dir = input('Please enter the name of the folder with the .fsa files: ')
+        dir_name = os.getcwd() + '/' + fsa_dir
+        os.chdir(dir_name)
+        # Checks number of .fsa files in the directory
+        fsa_names = [x for x in os.listdir(dir_name) if x.endswith('.fsa')]
+        length_dir = len(fsa_names)
+        print('One of the detected .fsa file names is:', fsa_names[0])
+        print('------------------------------------------------------------')
+        time_underscore = int(
+            input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0: "))
+        time_list = []
+        # Adjusts to make the zero time point the first .fsa file in the directory
+        for i in range(len(fsa_names)):
+            name_list = fsa_names[i].split('_')
+            time_value = name_list[time_underscore]
+            if '.' not in time_value:
+                time_list.append(int(time_value))
+                continue
+            time_list.append(float(time_value))
+        # Sorts time_list
+        time_list.sort()
+    else:
+        dir_name = os.listdir(os.getcwd())
+        # Checks number of .fsa files in the directory
+        fsa_names = [x for x in dir_name if x.endswith('.fsa')]
+        length_dir = len([x for x in dir_name if x.endswith('.fsa')])
+        print('One of the detected .fsa file names is:',fsa_names[0])
+        print('------------------------------------------------------------')
+        time_underscore = int(
+            input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0: "))
     #In order to get the text file name from the folder
     #Gets the x values
     #a = [x for x in range(len(trace['DATA1'])+1)]
@@ -696,7 +722,7 @@ if skip_align == 'n' or skip_align == 'N':
         if x not in factors: factors.append(x)
     #all_factors = list(zip(factors,rev_factors))
     dim_table = pd.DataFrame(factors,columns=['Number of Rows','Number of Columns'])
-    dim_table.index.name = 'Num of Combinations'
+    dim_table.index.name = 'Possibility #'
     dim_table.index +=1
     print('Here are all the possible dimensions of the figure. Please choose which one you want:')
     print('----------------------------------------------------------------------------------------')
