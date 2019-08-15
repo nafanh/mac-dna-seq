@@ -491,10 +491,16 @@ so you would enter in 2 in this case: "))
     def main():
     ##    Uncomment line below if you want to enter the text file name manually
     ##    name = input('Enter file name (.txt): ')
-        dir_name_list = os.listdir(os.getcwd())
-        name = [x for x in dir_name_list if x.endswith('.txt')]
-        filtered = filtered_data(name[0]) #Creates table filtered by height threshold
+    #This code here is for mac only
+##        dir_name_list = os.listdir(os.getcwd())
+##        name = [x for x in dir_name_list if x.endswith('.txt')]
+##        filtered = filtered_data(name[0]) #Creates table filtered by height threshold
 
+        #This code here is for windows only:
+        name = input('Enter file name (.txt): ')
+        filtered = filtered_data(name)  # Creates table filtered by height threshold
+
+        
         #Adds column to table for distance to int. std.
         int_std_dist = sample_distance(filtered)
 
@@ -570,6 +576,41 @@ if skip_align == 'n' or skip_align == 'N':
     print('--------------------------------------------------------------')
     print()
     time_underscore = int(input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0: "))
+    folder_check = input("If your .fsa files are in a folder, press 'y' to continue, else press 'n': ")
+    #This is for windows only
+
+    if folder_check == 'y' or folder_check == 'Y':
+        fsa_dir = input('Please enter the name of the folder with the .fsa files: ')
+        dir_name = os.getcwd() + '\\' + fsa_dir
+        os.chdir(dir_name)
+        #Checks number of .fsa files in the directory
+        fsa_names = [x for x in os.listdir(dir_name) if x.endswith('.fsa')]
+        length_dir = len(fsa_names)
+        time_list = []
+        #Adjusts to make the zero time point the first .fsa file in the directory
+        for i in range(len(fsa_names)):
+            name_list = fsa_names[i].split('_')
+            time_value = name_list[time_underscore]
+            if '.' not in time_value:
+                time_list.append(int(time_value))
+                continue
+            time_list.append(float(time_value))
+        # Sorts time_list
+        time_list.sort()
+    else:
+        fsa_names = [x for x in os.listdir(os.getcwd()) if x.endswith('.fsa')]
+        length_dir = len(fsa_names)
+        time_list = []
+        # Adjusts to make the zero time point the first .fsa file in the directory
+        for i in range(len(fsa_names)):
+            name_list = fsa_names[i].split('_')
+            time_value = name_list[time_underscore]
+            if '.' not in time_value:
+                time_list.append(int(time_value))
+                continue
+            time_list.append(float(time_value))
+        #sorsts time_list
+        time_list.sort()
     #In order to get the text file name from the folder
     #Gets the x values
     #a = [x for x in range(len(trace['DATA1'])+1)]
@@ -583,8 +624,12 @@ if skip_align == 'n' or skip_align == 'N':
     #trace['DATA1'].index(max(trace['DATA1']))
 
     #Prompts user for number of time points and the y/x min and max
-    print('Current directory is: ',os.getcwd())
-    print('----------------------------------------------')
+    #This is for mac only
+##    print('Current directory is: ',os.getcwd())
+##    print('----------------------------------------------')
+
+
+    
     #Checks how many fsa files are in the directory. If not equal to the number
     #of time points entered, then requests user to enter number of time points again
     ##folder_check = input("If your .fsa files are in a folder, press 'y' to continue, else press 'n': ")
@@ -593,21 +638,21 @@ if skip_align == 'n' or skip_align == 'N':
     ##    length_dir = len(os.listdir(fsa_dir + '/'))
     ##    length_dir_name = os.listdir(fsa_dir + '/')
 
-    dir_name = os.listdir(os.getcwd())
-    #Checks number of .fsa files in the directory
-    fsa_names = [x for x in dir_name if x.endswith('.fsa')]
-    length_dir = len([x for x in dir_name if x.endswith('.fsa')])
-    time_list = []
-    #Adjusts to make the zero time point the first .fsa file in the directory
-    for i in range(len(fsa_names)):
-        name_list = fsa_names[i].split('_')
-        time_value = name_list[time_underscore]
-        if '.' not in time_value:
-            time_list.append(int(time_value))
-            continue
-        time_list.append(float(time_value))
-    #Sorts time_list
-    time_list.sort()
+##    dir_name = os.listdir(os.getcwd())
+##    #Checks number of .fsa files in the directory
+##    fsa_names = [x for x in dir_name if x.endswith('.fsa')]
+##    length_dir = len([x for x in dir_name if x.endswith('.fsa')])
+##    time_list = []
+##    #Adjusts to make the zero time point the first .fsa file in the directory
+##    for i in range(len(fsa_names)):
+##        name_list = fsa_names[i].split('_')
+##        time_value = name_list[time_underscore]
+##        if '.' not in time_value:
+##            time_list.append(int(time_value))
+##            continue
+##        time_list.append(float(time_value))
+##    #Sorts time_list
+##    time_list.sort()
     print('Here are time time values detected in the folder with the .fsa files:')
     print('--------------------------------------------------------------\n')
     for time in time_list: print(time,end='\n')
