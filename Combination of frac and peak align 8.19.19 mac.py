@@ -573,10 +573,12 @@ def divisors(n):
             factors.append([i,int(n/i)])
     return factors
 
-if skip_frac == 'y' or skip_frac == 'Y':
+skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
+
+if (skip_frac == 'y' or skip_frac == 'Y') and (skip_align == 'n' or skip_align == 'N'):
     print('Thank you, skipping fractional area vs size and aligning peaks only')
     path_f = input("Please enter in the parent path of the folder: ")
-skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
+
 if skip_align == 'n' or skip_align == 'N':
     #Program works so you don't have to use the cmd line dir>/b
     print()
@@ -585,12 +587,13 @@ if skip_align == 'n' or skip_align == 'N':
     print('--------------------------------------------------------------')
     print()
     #peak_align_path = input("Please enter the path of the folder: ")
-    folder_check = input("If your .fsa files are in a folder, press 'y' to continue, else press 'n': ")
+    folder_check = input("If your .fsa files are in a sub folder, press 'y' to continue, else press 'n': ")
     # This is works for mac
 
     if folder_check == 'y' or folder_check == 'Y':
-        fsa_dir = input('Please enter the name of the folder with the .fsa files: ')
-        dir_name = path_f + '/' + fsa_dir
+        #path_f = input("Please enter in the parent path of the folder: ")
+        sub_fold = input("Please enter the subfolder where the .fsa files are: ")
+        dir_name = path_f + '/' + sub_fold
         os.chdir(dir_name)
         # Checks number of .fsa files in the directory
         fsa_names = [x for x in os.listdir(dir_name) if x.endswith('.fsa')]
@@ -1026,7 +1029,6 @@ if skip_align == 'n' or skip_align == 'N':
 ##
 ##
 ##fig.show()
-
 
 
 
