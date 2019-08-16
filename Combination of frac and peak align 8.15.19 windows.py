@@ -36,7 +36,7 @@ skip_frac = input("Do you want to skip fractional area vs. size and just plot th
 print('-------------------------------------------------------\n')
 if skip_frac == 'n' or skip_frac == 'N':
     #Gets the .txt file
-    path_f = input("Please enter in the path of the folder: ")
+    path_f = input("Please enter in the parent path of the folder: ")
     os.chdir(path_f)
     dir_name_list = os.listdir(path_f)
     name = [x for x in dir_name_list if x.endswith('.txt')]
@@ -575,10 +575,9 @@ def divisors(n):
 
 if skip_frac == 'y' or skip_frac == 'Y':
     print('Thank you, skipping fractional area vs size and aligning peaks only')
-
+    path_f = input("Please enter in the parent path of the folder: ")
 skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
 if skip_align == 'n' or skip_align == 'N':
-
     #Program works so you don't have to use the cmd line dir>/b
     print()
     print('-----------------------------------------------------------------------------')
@@ -612,7 +611,9 @@ if skip_align == 'n' or skip_align == 'N':
         # Sorts time_list
         time_list.sort()
     else:
-        dir_name = os.listdir(path_f)
+        direc_name = path_f
+        dir_name = os.listdir(direc_name)
+        os.chdir(direc_name)
         # Checks number of .fsa files in the directory
         fsa_names = [x for x in dir_name if x.endswith('.fsa')]
         length_dir = len([x for x in dir_name if x.endswith('.fsa')])
