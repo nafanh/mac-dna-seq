@@ -36,7 +36,9 @@ skip_frac = input("Do you want to skip fractional area vs. size and just plot th
 print('-------------------------------------------------------\n')
 if skip_frac == 'n' or skip_frac == 'N':
     #Gets the .txt file
-    dir_name_list = os.listdir(os.getcwd())
+    path_f = input("Please enter in the parent path of the folder: ")
+    os.chdir(path_f)
+    dir_name_list = os.listdir(path_f)
     name = [x for x in dir_name_list if x.endswith('.txt')]
     file = open(name[0],'r')
     file.readline()
@@ -503,7 +505,9 @@ so you would enter in 2 in this case: "))
     def main():
     ##    Uncomment line below if you want to enter the text file name manually
     ##    name = input('Enter file name (.txt): ')
-        dir_name_list = os.listdir(os.getcwd())
+        #path_folder = input("Please enter the full path of the folder: ")
+        os.chdir(path_f)
+        dir_name_list = os.listdir(path_f)
         name = [x for x in dir_name_list if x.endswith('.txt')]
         filtered = filtered_data(name[0]) #Creates table filtered by height threshold
 
@@ -571,22 +575,22 @@ def divisors(n):
 
 if skip_frac == 'y' or skip_frac == 'Y':
     print('Thank you, skipping fractional area vs size and aligning peaks only')
-
+    path_f = input("Please enter in the parent path of the folder: ")
 skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
 if skip_align == 'n' or skip_align == 'N':
-
     #Program works so you don't have to use the cmd line dir>/b
     print()
     print('-----------------------------------------------------------------------------')
     print('Now aligning peaks....')
     print('--------------------------------------------------------------')
     print()
+    #peak_align_path = input("Please enter the path of the folder: ")
     folder_check = input("If your .fsa files are in a folder, press 'y' to continue, else press 'n': ")
     # This is works for mac
 
     if folder_check == 'y' or folder_check == 'Y':
         fsa_dir = input('Please enter the name of the folder with the .fsa files: ')
-        dir_name = os.getcwd() + '/' + fsa_dir
+        dir_name = path_f + '/' + fsa_dir
         os.chdir(dir_name)
         # Checks number of .fsa files in the directory
         fsa_names = [x for x in os.listdir(dir_name) if x.endswith('.fsa')]
@@ -607,7 +611,9 @@ if skip_align == 'n' or skip_align == 'N':
         # Sorts time_list
         time_list.sort()
     else:
-        dir_name = os.listdir(os.getcwd())
+        direc_name = path_f
+        dir_name = os.listdir(direc_name)
+        os.chdir(direc_name)
         # Checks number of .fsa files in the directory
         fsa_names = [x for x in dir_name if x.endswith('.fsa')]
         length_dir = len([x for x in dir_name if x.endswith('.fsa')])
