@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import math
 import os
 import PySimpleGUI as sg
+import sys
 #import seaborn as sns
 from pathlib import Path
 
@@ -77,13 +78,14 @@ if skip_frac == 'n' or skip_frac == 'N':
                 window_first.Element('_OUTPUT_').Update(txt_file_name)
                 file.close()
                 time_underscore = int(values_first['_TIME_'])
+                window_first.Close()
                 if time_underscore != 'None':
                     break
             except:
                 txt_file_name = 'Invalid'
         else:
             break
-    window_first.Close()
+    #window_first.Close()
 
     #text = sg.PopupGetFile('Please enter a file name')
     # file = open(text,'r')
@@ -653,8 +655,8 @@ if skip_frac == 'n' or skip_frac == 'N':
         #Returns a bar graph with time as the label
         #plot(time,length,frac)
 
-    if __name__ == '__main__':
-        main()
+    #if __name__ == '__main__':
+    main()
 
 #!/usr/bin/env python3
 from Bio import SeqIO
@@ -688,26 +690,38 @@ if skip_align == 'n' or skip_align == 'N':
 
     layout_three = [
         [sg.Text('Now Aligning Peaks')],
-        [sg.Text('Folder with .fsa files',key='_FOLDER_'), sg.Input(),sg.FolderBrowse()],
+        [sg.Text('Folder with .fsa files'), sg.Input(),sg.FolderBrowse(key='_FOLDER_')],
         [sg.Ok()],
-        [sg.Text('',key='_FSA_')],
-        [sg.Text('Enter time underscore',key='_TIMEU_'), sg.Input()],
+        [sg.Text('',size=(80,1),key='_FSA_')],
+        [sg.Text('Enter time underscore'), sg.Input(key='_TIMEU_')],
+        [sg.Button('Enter')],
         [sg.Text('',key='_DETIME_')],
-        [sg.Text('',key='_NUMTIME_')],
-        [sg.Text('',key='_FILENAME_')],
+        [sg.Text('Min x value:'),sg.Input(key='_MINX_')],
+        [sg.Text('Max x value:'), sg.Input(key='_MAXX_')],
+        [sg.Text('Min y value:'), sg.Input(key='_MINY_')],
+        [sg.Text('Max y value:'), sg.Input(key='_MAXY_')],
+        [sg.Button('Submit Bounds')],
         [sg.Submit(), sg.Button('Done')]
     ]
 
     window_three = sg.Window('Peak Alignment',layout_three)
-
+    time_underscore = 0
+    folder_fsa = ''
+    x_min = 0
+    x_max = 0
+    y_min = 0
+    y_max = 0
     while True:
         event_three,values_three = window_three.Read()
+        #print(event_three,values_three)
         if event_three is None or event_three == 'Exit':
             break
         if event_three == 'Ok':
+            folder_fsa = values_three['_FOLDER_']
             fsa_names = [x for x in os.listdir(values_three['_FOLDER_']) if x.endswith('.fsa')]
             length_dir = len(fsa_names)
             window_three.Element('_FSA_').Update('One of the file names detected was:' + fsa_names[0])
+        if event_three == 'Enter':
             time_list = []
             # Adjusts to make the zero time point the first .fsa file in the directory
             for i in range(len(fsa_names)):
@@ -719,17 +733,35 @@ if skip_align == 'n' or skip_align == 'N':
                 time_list.append(float(time_value))
             # Sorts time_list
             time_list.sort()
-            window_three.Element('_DETIME_').Update('The time values detected:' + str(time_list))
-            window_three.Element('_NUMTIME_').Update('Num Time Pts' + values_three['_TIMEU_'])
+            # window_three.Element('_DETIME_').Update('The time values detected:' + str(time_list))
+            # window_three.Element('_NUMTIME_').Update('Num Time Pts' + values_three['_TIMEU_'])
             fsa_names_sorted = []
-
+            time_underscore = int(values_three['_TIMEU_'])
             for time in time_list:
                 for ext_name in fsa_names:
                     ext_name_split = ext_name.split('_')
-                    if ext_name_split[values_three['_TIMEU_']] == str(time):
+                    if ext_name_split[int(values_three['_TIMEU_'])] == str(time):
                         fsa_names_sorted.append(ext_name)
                     continue
-            window_three.Element('_FILENAME_').Update('Name of files aligning'+ fsa_names_sorted)
+            sg.PopupScrolled('The time values detected: ',
+                             '----------------------------------------',
+                             str(time_list),
+                             '----------------------------------------',
+                             'Num Time Pts: \n' + str(len(fsa_names_sorted)),
+                             '----------------------------------------',
+                             "Files Aligning:",
+                             '-----------------------------------------',
+                             str(fsa_names_sorted))
+        if event_three == 'Submit Bounds':
+            x_min = int(values_three['_MINX_'])
+            x_max = int(values_three['_MAXX_'])
+            y_min = int(values_three['_MINY_'])
+            y_max = int(values_three['_MAXY_'])
+            break
+
+
+        #window_three.Close()
+            #window_three.Element('_FILENAME_').Update('Name of files aligning'+ str(fsa_names_sorted))
 
     #peak_align_path = input("Please enter the path of the folder: ")
     #folder_check = input("If your .fsa files are in a sub folder, press 'y' to continue, else press 'n': ")
@@ -831,16 +863,27 @@ if skip_align == 'n' or skip_align == 'N':
     ##while length_dir > num_pts or length_dir < num_pts:
     ##    num_pts = int(input("Number of time points not consistent \
     ##with the number of .fsa files. Please enter number of time points again: "))
-    x_min = int(input("Please enter the min. x value: "))
-    x_max = int(input("Please enter max x value: "))
-    while x_min > x_max:
-        x_min = int(input("x value minimum is greater than x value max, please try again. x min value: "))
-        x_max = int(input("Please enter max x value: "))
-    y_min = int(input("Please enter min y value: "))
-    y_max = int(input("Please enter max y value: "))
-    while y_min > y_max:
-        y_min = int(input("y value minimum is greater than y value max, please try again. y min value: "))
-        y_max = int(input("Please enter max y value: "))
+
+
+
+
+    # x_min = int(input("Please enter the min. x value: "))
+    # x_max = int(input("Please enter max x value: "))
+    # while x_min > x_max:
+    #     x_min = int(input("x value minimum is greater than x value max, please try again. x min value: "))
+    #     x_max = int(input("Please enter max x value: "))
+    # y_min = int(input("Please enter min y value: "))
+    # y_max = int(input("Please enter max y value: "))
+    # while y_min > y_max:
+    #     y_min = int(input("y value minimum is greater than y value max, please try again. y min value: "))
+    #     y_max = int(input("Please enter max y value: "))
+
+
+
+
+
+
+
     ##else:
     ###In order to get file names of the fsa plots, go to run -->
     ###cmd --> cd (place where file is contained)
@@ -864,18 +907,33 @@ if skip_align == 'n' or skip_align == 'N':
     dim_table = pd.DataFrame(factors,columns=['Number of Rows','Number of Columns'])
     dim_table.index.name = 'Possibility #'
     dim_table.index +=1
-    print('Here are all the possible dimensions of the figure. Please choose which one you want:')
-    print('----------------------------------------------------------------------------------------')
-    print(dim_table)
+    # print('Here are all the possible dimensions of the figure. Please choose which one you want:')
+    # print('----------------------------------------------------------------------------------------')
+    # print(dim_table)
 
+    sg.PopupScrolled('Here are all the possible dimensions of the figure. Please choose which one you want:',
+                    '----------------------------------------------------------------------------------------',
+                     dim_table)
+
+    layout_four = [
+                    [sg.Text('Desired Num of Rows:'),sg.Input(key='_ROWS_')],
+                    [sg.Text('Desired Num of Columns:'),sg.Input(key='_COLS_')],
+                    [sg.Submit()]
+                   ]
+    window_four = sg.Window('Pic dimensions',layout_four)
+    event_four,values_four = window_four.Read()
+    if event_four == 'Submit':
+        rows = int(values_four['_ROWS_'])
+        cols = int(values_four['_COLS_'])
+        window_four.Close()
     # for i in range(len(all_factors)):
     #     if i!= len(all_factors)-1:
     #         print(all_factors[i])
     #     else:
     #         print(all_factors[i])
-    print('------------------------------------------------------------------------------')
-    rows = int(input("Please enter in the desired number of rows: "))
-    cols = int(input("Please enter in the desired number of columns: "))
+    # print('------------------------------------------------------------------------------')
+    # rows = int(input("Please enter in the desired number of rows: "))
+    # cols = int(input("Please enter in the desired number of columns: "))
     #Creates figure, axis objects for subplot
     fig,ax = plt.subplots(rows,cols,sharex=True,sharey=True)
     # fig = plt.figure()
@@ -947,6 +1005,7 @@ if skip_align == 'n' or skip_align == 'N':
     i = 0
     j = 1
     count_1x = 0
+
     #Parses through each fsa file in the directory
     for k in range(length_dir):
         #n = str(os.getcwd()) + '/' + fsa_dir + '/' + length_dir_name[k]
@@ -954,7 +1013,7 @@ if skip_align == 'n' or skip_align == 'N':
         if k == 0:
             first_dp_split = fsa_names_sorted[k].split('_')
             time = first_dp_split[time_underscore]
-            standard = SeqIO.read(fsa_names_sorted[k],'abi')
+            standard = SeqIO.read(folder_fsa + '/' + fsa_names_sorted[k],'abi')
             s_abif_key = standard.annotations['abif_raw'].keys()
             s_trace = defaultdict(list)
             s_channels = ['DATA1']
@@ -986,7 +1045,7 @@ if skip_align == 'n' or skip_align == 'N':
         time_peak = name_split[time_underscore]
 
         #opens up the FSA file
-        record = SeqIO.read(fsa_names_sorted[k],'abi')
+        record = SeqIO.read(folder_fsa + '/' + fsa_names_sorted[k],'abi')
         #Record returns a bunch of dictionaries. Use this line to get the dictionary
         #keys of abif_raw only
         abif_key = record.annotations['abif_raw'].keys()
@@ -1042,6 +1101,7 @@ if skip_align == 'n' or skip_align == 'N':
     fig.text(0.04,0.5,'RFU', va='center', rotation='vertical')
 
     plt.show()
+sys.exit()
 
 
 ##print()
