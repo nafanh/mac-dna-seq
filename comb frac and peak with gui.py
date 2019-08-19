@@ -35,17 +35,29 @@ next line will ask you if you want to skip data analysis and strictly align peak
 . Standard yes and no answers will have to be entered as y or n, respectively.')
 print()
 layout = [[sg.Text('Parameters')],
-          [sg.Text('Do you want to only plot graphs?'), sg.InputText()],
-          [sg.Submit(),sg.Cancel()]]
-window = sg.Window('Skip',layout)
-event, values = window.Read()
+          [sg.Text('Do you want to only plot graphs? Enter yes or no'), sg.InputText(key='_ASK_')],
+          [sg.Submit(),sg.Exit()]]
+window = sg.Window('Frac and Align',layout)
+
+while True:
+    event, values = window.Read()
+    if event is None or event == 'Exit':
+        sys.exit()
+
+    #while True:
+    if values['_ASK_'] == 'no' or values['_ASK_'] == 'yes':
+        break
+    else:
+        sg.PopupError('Invalid input, please try again')
+
+
 if event is 'Submit':
     window.Close()
-skip_frac = values[0]
+skip_frac = values['_ASK_']
 
 #skip_frac = input("Do you want to skip fractional area vs. size and just plot the graphs? ('y' for yes and 'n' for no'): ")
 print('-------------------------------------------------------\n')
-if skip_frac == 'n' or skip_frac == 'N':
+if skip_frac == 'no' or skip_frac == 'No':
     #Gets the .txt file
     # path_f = input("Please enter in the parent path of the folder: ")
     # os.chdir(path_f)
@@ -55,38 +67,54 @@ if skip_frac == 'n' or skip_frac == 'N':
     #Asks for the .txt file
     layout_first = [[sg.Text('Name of the .txt file')],
                     [sg.In(), sg.FileBrowse()],
+                    [sg.Submit()],
                     [sg.Text('The current run description from the .txt file is:'),
                      sg.Text('', size=(50, 1), key='_OUTPUT_')],
-                    [sg.Submit(),sg.Cancel()],
                     [sg.Text('Enter underscore after which the time is:'), sg.InputText(key='_TIME_')],
-                    [sg.Submit(), sg.Cancel()]]
-    window_first = sg.Window('Name of .txt file', layout_first)
-
+                    [sg.Button('Submit Number')]]
+    window_first = sg.Window('Raw .txt file input', layout_first)
+    check_under = 0
     while True:
         event_first, values_first = window_first.Read()
-        text = values_first[0]
-        if not text:
-            sg.Popup("Cancel", "No filename supplied")
-            raise SystemExit("Cancelling: no filename supplied")
-        if event_first is not None:
+        print(event_first,values_first)
+        # text = values_first[0]
+        if event_first is None:
+            sys.exit()
+        # if not text:
+        #     sg.Popup("Cancel", "No filename supplied")
+            #raise SystemExit("Cancelling: no filename supplied")
+        # if not values_first['_OUTPUT_']:
+        #     sg.Popup('No Number Supplied')
+        if event_first == 'Submit':
+
             try:
+                text = values_first[0]
+                if not text:
+                    sg.Popup('txt file not entered')
                 file = open(text, 'r')
                 file.readline()
                 second_line = file.readline()
                 split_second_line = second_line.split()
                 txt_file_name = split_second_line[1]
+                txt_file_name_u = second_line.split('_')
                 window_first.Element('_OUTPUT_').Update(txt_file_name)
                 file.close()
+            except FileNotFoundError:
+                sg.Popup('Invalid file destination')
+
+        if event_first == 'Submit Number':
+            try:
                 time_underscore = int(values_first['_TIME_'])
-                window_first.Close()
+                check_under = txt_file_name_u[time_underscore]
+                # window_first.Close()
                 if time_underscore != 'None':
                     break
             except:
-                txt_file_name = 'Invalid'
-        else:
-            break
-    #window_first.Close()
+                sg.Popup('No valid number. Please try again')
 
+    window_first.Close()
+
+    print(check_under)
     #text = sg.PopupGetFile('Please enter a file name')
     # file = open(text,'r')
     # file.readline()
@@ -170,7 +198,29 @@ if skip_frac == 'n' or skip_frac == 'N':
         sg.PopupScrolled('These are all the internal std. peaks','--------------------------------', df_int_all,non_blocking=True)
         print()
 
-        min_height = int(sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired): "))
+        # while True:
+
+        x = sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired)",
+                                         "Minimum Height")
+        if x == None:
+            sys.exit()
+        min_height = int(x)
+
+        while True:
+            try:
+                if int(min_height) == min_height:
+                    break
+            except:
+                sg.Popup('Invalid number entered')
+                min_height = int(
+                    sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired)",
+                                    "Minimum Height"))
+
+            #if int(min_height) == min_height:
+                #break
+        # except:
+        #     sg.Popup('Invalid number entered')
+
         df_hmin = df.loc[df['Height'].astype(int) > min_height]
 
         # exports data with height above 100 to excel sheet
@@ -275,19 +325,19 @@ if skip_frac == 'n' or skip_frac == 'N':
         #while addit == 'y' or addit == 'Y':
         layout_two = [
             [sg.Text('Polymer length')],
-            [sg.Text('Polymer Name'), sg.Input()],
-            [sg.Text('Lower Bound (inclusive)'), sg.Input()],
-            [sg.Text('Upper Bound (exclusive)'), sg.Input()],
-            [sg.Text('Previous Range:')],
-            [sg.Text('',size = (15,1),key = '_OUT_')],
-            [sg.Submit(), sg.Cancel()]
+            [sg.Text('Polymer Name'), sg.Input(do_not_clear=False)],
+            [sg.Text('Lower Bound (inclusive)'), sg.Input(do_not_clear=False)],
+            [sg.Text('Upper Bound (exclusive)'), sg.Input(do_not_clear=False)],
+            [sg.Text('Ranges:')],
+            [sg.Text('',size=(50,1),key = '_POLYMER_')],
+            [sg.Text('',size = (50,1),key = '_OUT_')],
+            [sg.Submit(), sg.Cancel(), sg.Button('Done')]
         ]
         window = sg.Window('Polymer Bounds', layout_two)
-        count = 0
 
         while True:  # Event Loop
             event_two, values_two = window.Read()  # Please try and use as high of a timeout value as you can
-            if event_two is None or event_two== 'Quit':  # if user closed the window using X or clicked Quit button
+            if event_two is None or event_two == 'Quit':  # if user closed the window using X or clicked Quit button
                 break
 
             #Creates temporary list to be added to the ranges_list
@@ -302,25 +352,29 @@ if skip_frac == 'n' or skip_frac == 'N':
                 # else:
                 #     break
 
+            if event_two == 'Submit':
+                try:
+                    polymer = values_two[0]
+                    length.append(polymer)
+                    # low_r = float(input("Enter lower bound of diff (lower bound is inclusive): "))
+                    # upper_r = float(input("Enter upper bound of diff (upper bound is exclusive): "))
+                    low_r = int(values_two[1])
+                    upper_r = int(values_two[2])
+                    temp.append(low_r)
+                    temp.append(upper_r)
+                    #Adds nested list of lower and upper bounds to list
+                    ranges_list.append(temp)
+                    #break
 
-            try:
-                polymer = values_two[0]
-                length.append(polymer)
-                # low_r = float(input("Enter lower bound of diff (lower bound is inclusive): "))
-                # upper_r = float(input("Enter upper bound of diff (upper bound is exclusive): "))
-                low_r = int(values_two[1])
-                upper_r = int(values_two[2])
-                temp.append(low_r)
-                temp.append(upper_r)
-                #Adds nested list of lower and upper bounds to list
-                ranges_list.append(temp)
-                #break
+                    #In case integer not entered for bounds. Catch exception
+                except:
+                    #print("Lower or upper bounds not valid. Please try again.")
+                    sg.Popup('One of the bounds is not valid, please try again.')
+                window.Element('_POLYMER_').Update(str(length))
+                window.Element('_OUT_').Update(str(ranges_list))
 
-                #In case integer not entered for bounds. Catch exception
-            except ValueError:
-                print("Lower or upper bounds not valid. Please try again.")
-            window.Element('_OUT_').Update(length[count]+ ':' + str(ranges_list[count]))
-            count+=1
+            if event_two == 'Done':
+                break
         window.Close()
                 #addit = sg.PopupGetText('Are there any more polymers? Enter y for yes and n for no:')
                 #addit = input("Are there any more? Input 'y' for yes and 'n' to end: ")
@@ -515,7 +569,21 @@ if skip_frac == 'n' or skip_frac == 'N':
     #Function that multiplies values by specific concentration
     def conc_fix(df):
         #conc = int(input("Please enter the concentration(nM): "))
-        conc = int(sg.PopupGetText('Please enter the concentration(nM):'))
+
+
+        layout_five = [[sg.Text('Please enter the conc.(nM)'),sg.Input(key='_CONC_')],
+                       [sg.Text('Please enter desired name of exported csv file:'),sg.Input(key='_EXNAME_')],
+                       [sg.Submit()]
+        ]
+        window_five = sg.Window('Conc. and name',layout_five)
+        event_five, values_five = window_five.Read()
+        if event_five == 'Submit':
+            conc = int(values_five['_CONC_'])
+            csv_name = values_five['_EXNAME_']
+
+
+
+        #conc = int(sg.PopupGetText('Please enter the concentration(nM):'))
         #Creates new columns containing polymer/total multiplied by concentration
         headers = df.columns.values.tolist()
         for head in headers:
@@ -525,7 +593,7 @@ if skip_frac == 'n' or skip_frac == 'N':
         df.sort_index(inplace=True)
 
         #csv_name = input("Please enter desired name of exported csv file: ")
-        csv_name = sg.PopupGetText('Please enter desired name of Exported csv file:')
+        #csv_name = sg.PopupGetText('Please enter desired name of Exported csv file:')
         #Gets the time and concentration/total columns only
         col_length = df.shape[1]
         midpt = int((col_length)/2) + 1
@@ -1104,121 +1172,121 @@ if skip_align == 'n' or skip_align == 'N':
 sys.exit()
 
 
-##print()
-##print('Now plotting 3d')
-##print('-------------------------------')
-##
-##
-##
-##
-##
-###!/usr/bin/env python3
-##from Bio import SeqIO
-##from collections import defaultdict
-##import pandas as pd
-##import numpy as np
-##import matplotlib.pyplot as plt
-##import os
-##import pprint
-##from mpl_toolkits import mplot3d
-##from mpl_toolkits.mplot3d import Axes3D
-##fig = plt.figure()
-##ax = plt.axes(projection='3d')
-###Counter for subplot number
-##subplot_num = 1
-###Creates a list for all the differences. Will take the largest difference to set the axes x min and x max (y min and y max for 3d scatter)
-##diff_list = []
-###parses the directory for .fsa files
-##for k in range(length_dir):
-##    if k == 0:
-##        #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
-##        first_dp_split = fsa_names_sorted[k].split('_')
-##        time = first_dp_split[time_underscore]
-##        standard = SeqIO.read(fsa_names_sorted[k],'abi')
-##        s_abif_key = standard.annotations['abif_raw'].keys()
-##        s_trace = defaultdict(list)
-##        s_channels = ['DATA1']
-##        for sc in s_channels:
-##            #s_trace['DATA1'] = y values
-##            s_trace[sc] = standard.annotations['abif_raw'][sc]
-##        x_values = s_trace['DATA1']
-##        y_std_max = max(x_values)
-##        x_std_max = x_values.index(y_std_max)
-##        #print(x_values[x_min:x_max+1])
-##
-##        z_values = x_values[x_min:x_max+1]
-##        x_values_time = [float(time)] * len(z_values)
-##        y_values = np.arange(x_min,x_max+1)
-##    ##    print(len(x_values))
-##    ##    print(len(y_values))
-##    ##    print(len(z_values))
-##    #x_values = np.arange(1,len(y_values)+1)
-##    ##
-##    ##
-##        sc_std = ax.plot(x_values_time,y_values,z_values, alpha=0.7)
-##        continue
-##
-##    subplot_num += 1
-##    name_split = fsa_names_sorted[k].split('_')
-##    time_peak = name_split[time_underscore]
-##    #opens up the FSA file
-##    record = SeqIO.read(fsa_names_sorted[k],'abi')
-##    #Record returns a bunch of dictionaries. Use this line to get the dictionary
-##    #keys of abif_raw only
-##    abif_key = record.annotations['abif_raw'].keys()
-##    #Creates an empty list as the value in the dict
-##    trace = defaultdict(list)
-##    #DATA1 is where all the peak value is held, so only grab this dictionary key
-##    channels = ['DATA1']
-##    #Parses the channels list and returns the values for each key in dictionary
-##    for c in channels:
-##        trace[c] = record.annotations['abif_raw'][c]
-##    #Xvalues for time pts
-##    x_values_non_std = trace['DATA1']
-##    #Numpy for y values (xvalues_non_std)
-##
-##    #Get the max value data
-##    y_peak = max(x_values_non_std)
-##    #Gets the x value of the max value
-##    x_peak = x_values_non_std.index(y_peak)
-##    #Takes difference of reference x value and time point x value
-##    diff = x_peak - x_std_max
-##    diff_list.append(diff)
-##    #print(diff)
-##    #X_values_non_std are really the y values on a 2d graph
-##    y_values_non_std = np.arange(x_min,x_max+1) - diff
-##    z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
-##    x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
-##    #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
-##    sc_non_std = ax.plot(x_values_time_non_std,y_values_non_std,z_values_non_std, alpha=0.7)
-##ax.set_ylim(x_min,x_max)
-##ax.set_zlim(y_min,y_max)
-##ax.set_xlabel('Time')
-##ax.set_ylabel('Data Point')
-##ax.set_zlabel('RFU')
-### make the panes transparent
-##ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-##ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-##ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-###ax.set_facecolor('grey')
-### make the grid lines transparent
-###ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-###ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-####ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-##
-##
-####    #Gets x values for vectorization purposes
-####    array = np.arange(1,len(trace['DATA1'])+1)
-####    #Subtracts difference from array (vectorization)
-####    array -= diff
-##
-##
-##
-##
-##
-##
-##
-##
-##fig.show()
+print()
+print('Now plotting 3d')
+print('-------------------------------')
+
+
+
+
+
+#!/usr/bin/env python3
+from Bio import SeqIO
+from collections import defaultdict
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+import pprint
+from mpl_toolkits import mplot3d
+from mpl_toolkits.mplot3d import Axes3D
+fig = plt.figure()
+ax = plt.axes(projection='3d')
+#Counter for subplot number
+subplot_num = 1
+#Creates a list for all the differences. Will take the largest difference to set the axes x min and x max (y min and y max for 3d scatter)
+diff_list = []
+#parses the directory for .fsa files
+for k in range(length_dir):
+   if k == 0:
+       #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
+       first_dp_split = fsa_names_sorted[k].split('_')
+       time = first_dp_split[time_underscore]
+       standard = SeqIO.read(fsa_names_sorted[k],'abi')
+       s_abif_key = standard.annotations['abif_raw'].keys()
+       s_trace = defaultdict(list)
+       s_channels = ['DATA1']
+       for sc in s_channels:
+           #s_trace['DATA1'] = y values
+           s_trace[sc] = standard.annotations['abif_raw'][sc]
+       x_values = s_trace['DATA1']
+       y_std_max = max(x_values)
+       x_std_max = x_values.index(y_std_max)
+       #print(x_values[x_min:x_max+1])
+
+       z_values = x_values[x_min:x_max+1]
+       x_values_time = [float(time)] * len(z_values)
+       y_values = np.arange(x_min,x_max+1)
+   ##    print(len(x_values))
+   ##    print(len(y_values))
+   ##    print(len(z_values))
+   #x_values = np.arange(1,len(y_values)+1)
+   ##
+   ##
+       sc_std = ax.plot(x_values_time,y_values,z_values, alpha=0.7)
+       continue
+
+   subplot_num += 1
+   name_split = fsa_names_sorted[k].split('_')
+   time_peak = name_split[time_underscore]
+   #opens up the FSA file
+   record = SeqIO.read(fsa_names_sorted[k],'abi')
+   #Record returns a bunch of dictionaries. Use this line to get the dictionary
+   #keys of abif_raw only
+   abif_key = record.annotations['abif_raw'].keys()
+   #Creates an empty list as the value in the dict
+   trace = defaultdict(list)
+   #DATA1 is where all the peak value is held, so only grab this dictionary key
+   channels = ['DATA1']
+   #Parses the channels list and returns the values for each key in dictionary
+   for c in channels:
+       trace[c] = record.annotations['abif_raw'][c]
+   #Xvalues for time pts
+   x_values_non_std = trace['DATA1']
+   #Numpy for y values (xvalues_non_std)
+
+   #Get the max value data
+   y_peak = max(x_values_non_std)
+   #Gets the x value of the max value
+   x_peak = x_values_non_std.index(y_peak)
+   #Takes difference of reference x value and time point x value
+   diff = x_peak - x_std_max
+   diff_list.append(diff)
+   #print(diff)
+   #X_values_non_std are really the y values on a 2d graph
+   y_values_non_std = np.arange(x_min,x_max+1) - diff
+   z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
+   x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
+   #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
+   sc_non_std = ax.plot(x_values_time_non_std,y_values_non_std,z_values_non_std, alpha=0.7)
+ax.set_ylim(x_min,x_max)
+ax.set_zlim(y_min,y_max)
+ax.set_xlabel('Time')
+ax.set_ylabel('Data Point')
+ax.set_zlabel('RFU')
+# make the panes transparent
+ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+#ax.set_facecolor('grey')
+# make the grid lines transparent
+#ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+#ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+##ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+
+
+##    #Gets x values for vectorization purposes
+##    array = np.arange(1,len(trace['DATA1'])+1)
+##    #Subtracts difference from array (vectorization)
+##    array -= diff
+
+
+
+
+
+
+
+
+fig.show()
 
 
