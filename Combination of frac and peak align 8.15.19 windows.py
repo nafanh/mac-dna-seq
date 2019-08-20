@@ -826,17 +826,18 @@ if skip_align == 'n' or skip_align == 'N':
             s_channels = ['DATA1']
             for sc in s_channels:
                 s_trace[sc] = standard.annotations['abif_raw'][sc]
-            y_std_max = max(s_trace['DATA1'])
-            x_std_max = s_trace['DATA1'].index(y_std_max)
+            y_val_data = np.asarray(s_trace['DATA1'])
+            y_std_max = max(y_val_data)
+            x_std_max = y_val_data.argmax()
             #Outputs the graph for the standard peaks
             if rows == 1 or cols == 1:
-                ax[count_1x].plot(s_trace['DATA1'],color='black')
+                ax[count_1x].plot(y_val_data,color='black')
                 ax[count_1x].set_title('Time: ' + time, loc='right',fontsize=8)
                 ax[count_1x].set_xlim(x_min,x_max)
                 ax[count_1x].set_ylim(y_min,y_max)
                 count_1x += 1
             else:
-                ax[0,0].plot(s_trace['DATA1'],color='black')
+                ax[0,0].plot(y_val_data,color='black')
                 ax[0,0].set_title('Time: ' + time, loc='right',fontsize=8)
                 ax[0,0].set_xlim(x_min,x_max)
                 ax[0,0].set_ylim(y_min,y_max)
@@ -874,6 +875,9 @@ if skip_align == 'n' or skip_align == 'N':
         array = np.arange(1,len(trace['DATA1'])+1)
         #Subtracts difference from array (vectorization)
         array -= diff
+
+        #print(trace['DATA1'])
+        #np.append(array,zero_list)
         #Plots the chromatogram data
     ##    for i in range(2):
     ##        for j in range(4):
@@ -910,122 +914,152 @@ if skip_align == 'n' or skip_align == 'N':
     plt.show()
 
 
-##print()
-##print('Now plotting 3d')
-##print('-------------------------------')
-##
-##
-##
-##
-##
-###!/usr/bin/env python3
-##from Bio import SeqIO
-##from collections import defaultdict
-##import pandas as pd
-##import numpy as np
-##import matplotlib.pyplot as plt
-##import os
-##import pprint
-##from mpl_toolkits import mplot3d
-##from mpl_toolkits.mplot3d import Axes3D
-##fig = plt.figure()
-##ax = plt.axes(projection='3d')
-###Counter for subplot number
-##subplot_num = 1
-###Creates a list for all the differences. Will take the largest difference to set the axes x min and x max (y min and y max for 3d scatter)
-##diff_list = []
-###parses the directory for .fsa files
-##for k in range(length_dir):
-##    if k == 0:
-##        #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
-##        first_dp_split = fsa_names_sorted[k].split('_')
-##        time = first_dp_split[time_underscore]
-##        standard = SeqIO.read(fsa_names_sorted[k],'abi')
-##        s_abif_key = standard.annotations['abif_raw'].keys()
-##        s_trace = defaultdict(list)
-##        s_channels = ['DATA1']
-##        for sc in s_channels:
-##            #s_trace['DATA1'] = y values
-##            s_trace[sc] = standard.annotations['abif_raw'][sc]
-##        x_values = s_trace['DATA1']
-##        y_std_max = max(x_values)
-##        x_std_max = x_values.index(y_std_max)
-##        #print(x_values[x_min:x_max+1])
-##
-##        z_values = x_values[x_min:x_max+1]
-##        x_values_time = [float(time)] * len(z_values)
-##        y_values = np.arange(x_min,x_max+1)
-##    ##    print(len(x_values))
-##    ##    print(len(y_values))
-##    ##    print(len(z_values))
-##    #x_values = np.arange(1,len(y_values)+1)
-##    ##
-##    ##
-##        sc_std = ax.plot(x_values_time,y_values,z_values, alpha=0.7)
-##        continue
-##
-##    subplot_num += 1
-##    name_split = fsa_names_sorted[k].split('_')
-##    time_peak = name_split[time_underscore]
-##    #opens up the FSA file
-##    record = SeqIO.read(fsa_names_sorted[k],'abi')
-##    #Record returns a bunch of dictionaries. Use this line to get the dictionary
-##    #keys of abif_raw only
-##    abif_key = record.annotations['abif_raw'].keys()
-##    #Creates an empty list as the value in the dict
-##    trace = defaultdict(list)
-##    #DATA1 is where all the peak value is held, so only grab this dictionary key
-##    channels = ['DATA1']
-##    #Parses the channels list and returns the values for each key in dictionary
-##    for c in channels:
-##        trace[c] = record.annotations['abif_raw'][c]
-##    #Xvalues for time pts
-##    x_values_non_std = trace['DATA1']
-##    #Numpy for y values (xvalues_non_std)
-##
-##    #Get the max value data
-##    y_peak = max(x_values_non_std)
-##    #Gets the x value of the max value
-##    x_peak = x_values_non_std.index(y_peak)
-##    #Takes difference of reference x value and time point x value
-##    diff = x_peak - x_std_max
-##    diff_list.append(diff)
-##    #print(diff)
-##    #X_values_non_std are really the y values on a 2d graph
-##    y_values_non_std = np.arange(x_min,x_max+1) - diff
-##    z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
-##    x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
-##    #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
-##    sc_non_std = ax.plot(x_values_time_non_std,y_values_non_std,z_values_non_std, alpha=0.7)
-##ax.set_ylim(x_min,x_max)
-##ax.set_zlim(y_min,y_max)
-##ax.set_xlabel('Time')
-##ax.set_ylabel('Data Point')
-##ax.set_zlabel('RFU')
-### make the panes transparent
-##ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-##ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-##ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-###ax.set_facecolor('grey')
-### make the grid lines transparent
-###ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-###ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-####ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-##
-##
-####    #Gets x values for vectorization purposes
-####    array = np.arange(1,len(trace['DATA1'])+1)
-####    #Subtracts difference from array (vectorization)
-####    array -= diff
-##
-##
-##
-##
-##
-##
-##
-##
-##fig.show()
+print()
+print('Now plotting 3d')
+print('-------------------------------')
+
+
+
+
+
+#!/usr/bin/env python3
+from Bio import SeqIO
+from collections import defaultdict
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+import pprint
+from mpl_toolkits import mplot3d
+from mpl_toolkits.mplot3d import Axes3D
+fig = plt.figure()
+ax = plt.axes(projection='3d')
+#Counter for subplot number
+subplot_num = 1
+#Creates a list for all the differences. Will take the largest difference to set the axes x min and x max (y min and y max for 3d scatter)
+diff_list = []
+#parses the directory for .fsa files
+for k in range(length_dir):
+   if k == 0:
+       #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
+       first_dp_split = fsa_names_sorted[k].split('_')
+       time = first_dp_split[time_underscore]
+       standard = SeqIO.read(fsa_names_sorted[k],'abi')
+       s_abif_key = standard.annotations['abif_raw'].keys()
+       s_trace = defaultdict(list)
+       s_channels = ['DATA1']
+       for sc in s_channels:
+           #s_trace['DATA1'] = y values
+           s_trace[sc] = standard.annotations['abif_raw'][sc]
+       x_values = np.asarray(s_trace['DATA1'])
+       y_std_max = max(x_values)
+       x_std_max = x_values.argmax()
+       #print(x_values[x_min:x_max+1])
+
+       z_values = x_values[x_min:x_max+1]
+       x_values_time = [float(time)] * len(z_values)
+       y_values = np.arange(x_min,x_max+1)
+   ##    print(len(x_values))
+   ##    print(len(y_values))
+   ##    print(len(z_values))
+   #x_values = np.arange(1,len(y_values)+1)
+   ##
+   ##
+       sc_std = ax.plot(x_values_time,y_values,z_values, alpha=0.7)
+       continue
+
+   subplot_num += 1
+   name_split = fsa_names_sorted[k].split('_')
+   time_peak = name_split[time_underscore]
+   #opens up the FSA file
+   record = SeqIO.read(fsa_names_sorted[k],'abi')
+   #Record returns a bunch of dictionaries. Use this line to get the dictionary
+   #keys of abif_raw only
+   abif_key = record.annotations['abif_raw'].keys()
+   #Creates an empty list as the value in the dict
+   trace = defaultdict(list)
+   #DATA1 is where all the peak value is held, so only grab this dictionary key
+   channels = ['DATA1']
+   #Parses the channels list and returns the values for each key in dictionary
+   for c in channels:
+       trace[c] = record.annotations['abif_raw'][c]
+   #Xvalues for time pts
+   x_values_non_std = np.asarray(trace['DATA1'])
+   #Numpy for y values (xvalues_non_std)
+
+   #Get the max value data
+   y_peak = max(x_values_non_std)
+   #Gets the x value of the max value
+   x_peak = x_values_non_std.argmax()
+   #Takes difference of reference x value and time point x value
+   diff = x_peak - x_std_max
+   diff_list.append(diff)
+   #y_values_append_values = np.arange(x_max - diff, x_max)
+   #print(diff)
+
+   #X_values_non_std are really the y values on a 2d graph
+   y_values_non_std = np.arange(x_min,x_max+1) - diff
+
+##   x_min_diff_first_x = np.where(y_values_non_std == x_min)
+   #print(x_min_diff_first_x)
+   # if x_min_diff_first_x[0].size != 0:
+   #     x_min_diff_first_x_range = np.arange(x_min_diff_first_x[0])
+   #     #print(x_min_diff_first_x_range)
+   #     y_values_non_std = np.delete(y_values_non_std,x_min_diff_first_x_range)
+   # print(y_values_non_std)
+   #print(x_min_diff_first_x)
+   #print(y_values_non_std)
+   #x_min_diff_first_x_np = np.arange(x_min_diff_first_x)
+   #np.delete(y_values_non_std,x_min_diff_first_x_np)
+   z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
+   x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
+
+   diff_range_list = np.arange(diff)
+   y_values_non_std = np.delete(y_values_non_std,diff_range_list)
+   z_values_non_std = np.delete(z_values_non_std,diff_range_list)
+   x_values_time_non_std = np.delete(x_values_time_non_std,diff_range_list)
+
+   zero_list = [0] * diff
+   y_values_append_values = np.arange(x_max - diff, x_max)
+   z_values_append_values = np.array(zero_list)
+   x_values_time_append_values = np.array([float(time_peak)]*diff)
+
+   y_values_non_std = np.append(y_values_non_std, y_values_append_values)
+   z_values_non_std = np.append(z_values_non_std,z_values_append_values)
+   x_values_time_non_std = np.append(x_values_time_non_std,x_values_time_append_values)
+   #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
+   #np.append(y_values_non_std,zero_list)
+
+   sc_non_std = ax.plot(x_values_time_non_std,y_values_non_std,z_values_non_std, alpha=0.7)
+ax.set_ylim(x_min,x_max)
+ax.set_zlim(y_min,y_max)
+ax.set_xlabel('Time')
+ax.set_ylabel('Data Point')
+ax.set_zlabel('RFU')
+# make the panes transparent
+ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+#ax.set_facecolor('grey')
+# make the grid lines transparent
+#ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+#ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+##ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+
+
+##    #Gets x values for vectorization purposes
+##    array = np.arange(1,len(trace['DATA1'])+1)
+##    #Subtracts difference from array (vectorization)
+##    array -= diff
+
+
+
+
+
+
+
+
+fig.show()
 
 
 
