@@ -26,6 +26,9 @@ def natural_keys(text):
 #Removes the SettingCopyerror
 #pd.options.mode.chained_assignment = None
 
+#Checks string for numbers
+def string_num_check(string):
+    return any(i.isdigit() for i in string)
 #Entered name has to be in this format:
 # Any_Any_[Time]_Any(even amt of underscores)_[Well](.fsa)
 #ex: Exo_BurstMM_0.5_TLD_2018-12-18_A06.fsa
@@ -96,7 +99,7 @@ if skip_frac == 'no' or skip_frac == 'No':
                 second_line = file.readline()
                 split_second_line = second_line.split()
                 txt_file_name = split_second_line[1]
-                txt_file_name_u = second_line.split('_')
+                #txt_file_name_u = second_line.split('_')
                 window_first.Element('_OUTPUT_').Update(txt_file_name)
                 file.close()
             except FileNotFoundError:
@@ -105,7 +108,7 @@ if skip_frac == 'no' or skip_frac == 'No':
         if event_first == 'Submit Number':
             try:
                 time_underscore = int(values_first['_TIME_'])
-                check_under = txt_file_name_u[time_underscore]
+                #check_under = txt_file_name_u[time_underscore]
                 # window_first.Close()
                 if time_underscore != 'None':
                     break
@@ -114,7 +117,7 @@ if skip_frac == 'no' or skip_frac == 'No':
 
     window_first.Close()
 
-    print(check_under)
+    #print(check_under)
     #text = sg.PopupGetFile('Please enter a file name')
     # file = open(text,'r')
     # file.readline()
@@ -200,21 +203,26 @@ if skip_frac == 'no' or skip_frac == 'No':
 
         # while True:
 
-        x = sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired)",
+        min_height = sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired)",
                                          "Minimum Height")
-        if x == None:
+        if min_height == None or min_height == 'Cancel':
             sys.exit()
-        min_height = int(x)
 
+        flag = True
         while True:
-            try:
-                if int(min_height) == min_height:
-                    break
-            except:
-                sg.Popup('Invalid number entered')
-                min_height = int(
-                    sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired)",
-                                    "Minimum Height"))
+            if min_height == None or min_height == 'Cancel':
+                sys.exit()
+            for ch in min_height:
+                if not ch.isdigit():
+                    min_height = sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired)",
+                                             "Minimum Height")
+                    continue
+                flag = False
+                break
+            if flag == False:
+                break
+
+        min_height = int(min_height)
 
             #if int(min_height) == min_height:
                 #break
@@ -222,6 +230,7 @@ if skip_frac == 'no' or skip_frac == 'No':
         #     sg.Popup('Invalid number entered')
 
         df_hmin = df.loc[df['Height'].astype(int) > min_height]
+
 
         # exports data with height above 100 to excel sheet
         #export_excel_filtered = df.to_csv('Export_data_filtered_Hmin.csv',sep=',')
@@ -665,6 +674,7 @@ if skip_frac == 'no' or skip_frac == 'No':
         # os.chdir(path_f)
         # dir_name_list = os.listdir(path_f)
         # name = [x for x in dir_name_list if x.endswith('.txt')]
+
         filtered = filtered_data(text) #Creates table filtered by height threshold
 
         #Adds column to table for distance to int. std.
@@ -1172,121 +1182,121 @@ if skip_align == 'n' or skip_align == 'N':
 sys.exit()
 
 
-print()
-print('Now plotting 3d')
-print('-------------------------------')
-
-
-
-
-
-#!/usr/bin/env python3
-from Bio import SeqIO
-from collections import defaultdict
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-import pprint
-from mpl_toolkits import mplot3d
-from mpl_toolkits.mplot3d import Axes3D
-fig = plt.figure()
-ax = plt.axes(projection='3d')
-#Counter for subplot number
-subplot_num = 1
-#Creates a list for all the differences. Will take the largest difference to set the axes x min and x max (y min and y max for 3d scatter)
-diff_list = []
-#parses the directory for .fsa files
-for k in range(length_dir):
-   if k == 0:
-       #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
-       first_dp_split = fsa_names_sorted[k].split('_')
-       time = first_dp_split[time_underscore]
-       standard = SeqIO.read(fsa_names_sorted[k],'abi')
-       s_abif_key = standard.annotations['abif_raw'].keys()
-       s_trace = defaultdict(list)
-       s_channels = ['DATA1']
-       for sc in s_channels:
-           #s_trace['DATA1'] = y values
-           s_trace[sc] = standard.annotations['abif_raw'][sc]
-       x_values = s_trace['DATA1']
-       y_std_max = max(x_values)
-       x_std_max = x_values.index(y_std_max)
-       #print(x_values[x_min:x_max+1])
-
-       z_values = x_values[x_min:x_max+1]
-       x_values_time = [float(time)] * len(z_values)
-       y_values = np.arange(x_min,x_max+1)
-   ##    print(len(x_values))
-   ##    print(len(y_values))
-   ##    print(len(z_values))
-   #x_values = np.arange(1,len(y_values)+1)
-   ##
-   ##
-       sc_std = ax.plot(x_values_time,y_values,z_values, alpha=0.7)
-       continue
-
-   subplot_num += 1
-   name_split = fsa_names_sorted[k].split('_')
-   time_peak = name_split[time_underscore]
-   #opens up the FSA file
-   record = SeqIO.read(fsa_names_sorted[k],'abi')
-   #Record returns a bunch of dictionaries. Use this line to get the dictionary
-   #keys of abif_raw only
-   abif_key = record.annotations['abif_raw'].keys()
-   #Creates an empty list as the value in the dict
-   trace = defaultdict(list)
-   #DATA1 is where all the peak value is held, so only grab this dictionary key
-   channels = ['DATA1']
-   #Parses the channels list and returns the values for each key in dictionary
-   for c in channels:
-       trace[c] = record.annotations['abif_raw'][c]
-   #Xvalues for time pts
-   x_values_non_std = trace['DATA1']
-   #Numpy for y values (xvalues_non_std)
-
-   #Get the max value data
-   y_peak = max(x_values_non_std)
-   #Gets the x value of the max value
-   x_peak = x_values_non_std.index(y_peak)
-   #Takes difference of reference x value and time point x value
-   diff = x_peak - x_std_max
-   diff_list.append(diff)
-   #print(diff)
-   #X_values_non_std are really the y values on a 2d graph
-   y_values_non_std = np.arange(x_min,x_max+1) - diff
-   z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
-   x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
-   #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
-   sc_non_std = ax.plot(x_values_time_non_std,y_values_non_std,z_values_non_std, alpha=0.7)
-ax.set_ylim(x_min,x_max)
-ax.set_zlim(y_min,y_max)
-ax.set_xlabel('Time')
-ax.set_ylabel('Data Point')
-ax.set_zlabel('RFU')
-# make the panes transparent
-ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-#ax.set_facecolor('grey')
-# make the grid lines transparent
-#ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-#ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-##ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-
-
-##    #Gets x values for vectorization purposes
-##    array = np.arange(1,len(trace['DATA1'])+1)
-##    #Subtracts difference from array (vectorization)
-##    array -= diff
-
-
-
-
-
-
-
-
-fig.show()
+# print()
+# print('Now plotting 3d')
+# print('-------------------------------')
+#
+#
+#
+#
+#
+# #!/usr/bin/env python3
+# from Bio import SeqIO
+# from collections import defaultdict
+# import pandas as pd
+# import numpy as np
+# import matplotlib.pyplot as plt
+# import os
+# import pprint
+# from mpl_toolkits import mplot3d
+# from mpl_toolkits.mplot3d import Axes3D
+# fig = plt.figure()
+# ax = plt.axes(projection='3d')
+# #Counter for subplot number
+# subplot_num = 1
+# #Creates a list for all the differences. Will take the largest difference to set the axes x min and x max (y min and y max for 3d scatter)
+# diff_list = []
+# #parses the directory for .fsa files
+# for k in range(length_dir):
+#    if k == 0:
+#        #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
+#        first_dp_split = fsa_names_sorted[k].split('_')
+#        time = first_dp_split[time_underscore]
+#        standard = SeqIO.read(fsa_names_sorted[k],'abi')
+#        s_abif_key = standard.annotations['abif_raw'].keys()
+#        s_trace = defaultdict(list)
+#        s_channels = ['DATA1']
+#        for sc in s_channels:
+#            #s_trace['DATA1'] = y values
+#            s_trace[sc] = standard.annotations['abif_raw'][sc]
+#        x_values = s_trace['DATA1']
+#        y_std_max = max(x_values)
+#        x_std_max = x_values.index(y_std_max)
+#        #print(x_values[x_min:x_max+1])
+#
+#        z_values = x_values[x_min:x_max+1]
+#        x_values_time = [float(time)] * len(z_values)
+#        y_values = np.arange(x_min,x_max+1)
+#    ##    print(len(x_values))
+#    ##    print(len(y_values))
+#    ##    print(len(z_values))
+#    #x_values = np.arange(1,len(y_values)+1)
+#    ##
+#    ##
+#        sc_std = ax.plot(x_values_time,y_values,z_values, alpha=0.7)
+#        continue
+#
+#    subplot_num += 1
+#    name_split = fsa_names_sorted[k].split('_')
+#    time_peak = name_split[time_underscore]
+#    #opens up the FSA file
+#    record = SeqIO.read(fsa_names_sorted[k],'abi')
+#    #Record returns a bunch of dictionaries. Use this line to get the dictionary
+#    #keys of abif_raw only
+#    abif_key = record.annotations['abif_raw'].keys()
+#    #Creates an empty list as the value in the dict
+#    trace = defaultdict(list)
+#    #DATA1 is where all the peak value is held, so only grab this dictionary key
+#    channels = ['DATA1']
+#    #Parses the channels list and returns the values for each key in dictionary
+#    for c in channels:
+#        trace[c] = record.annotations['abif_raw'][c]
+#    #Xvalues for time pts
+#    x_values_non_std = trace['DATA1']
+#    #Numpy for y values (xvalues_non_std)
+#
+#    #Get the max value data
+#    y_peak = max(x_values_non_std)
+#    #Gets the x value of the max value
+#    x_peak = x_values_non_std.index(y_peak)
+#    #Takes difference of reference x value and time point x value
+#    diff = x_peak - x_std_max
+#    diff_list.append(diff)
+#    #print(diff)
+#    #X_values_non_std are really the y values on a 2d graph
+#    y_values_non_std = np.arange(x_min,x_max+1) - diff
+#    z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
+#    x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
+#    #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
+#    sc_non_std = ax.plot(x_values_time_non_std,y_values_non_std,z_values_non_std, alpha=0.7)
+# ax.set_ylim(x_min,x_max)
+# ax.set_zlim(y_min,y_max)
+# ax.set_xlabel('Time')
+# ax.set_ylabel('Data Point')
+# ax.set_zlabel('RFU')
+# # make the panes transparent
+# ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+# ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+# ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+# #ax.set_facecolor('grey')
+# # make the grid lines transparent
+# #ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+# #ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+# ##ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+#
+#
+# ##    #Gets x values for vectorization purposes
+# ##    array = np.arange(1,len(trace['DATA1'])+1)
+# ##    #Subtracts difference from array (vectorization)
+# ##    array -= diff
+#
+#
+#
+#
+#
+#
+#
+#
+# fig.show()
 
 
