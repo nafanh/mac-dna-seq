@@ -824,9 +824,14 @@ if skip_align == 'n' or skip_align == 'N':
             s_abif_key = standard.annotations['abif_raw'].keys()
             s_trace = defaultdict(list)
             s_channels = ['DATA1']
+            s_channel2 = ['DATA3']
             for sc in s_channels:
                 s_trace[sc] = standard.annotations['abif_raw'][sc]
-            y_val_data = np.asarray(s_trace['DATA1'])
+
+            for sd in s_channel2:
+                s_trace[sd] = standard.annotations['abif_raw'][sd]
+
+            y_val_data = np.asarray(s_trace['DATA3'])
             #print(len(y_val_data))
             y_std_max = max(y_val_data)
             x_std_max = y_val_data.argmax()
@@ -862,13 +867,18 @@ if skip_align == 'n' or skip_align == 'N':
         trace = defaultdict(list)
         #DATA1 is where all the peak value is held, so only grab this dictionary key
         channels = ['DATA1']
+        channel2 = ['DATA3']
         #Parses the channels list and returns the values for each key in dictionary
         for c in channels:
             trace[c] = record.annotations['abif_raw'][c]
+        for d in channel2:
+            trace[d] = record.annotations['abif_raw'][d]
+
+        print(len(trace['DATA3']))
         #Get the max value data
-        y_peak = max(trace['DATA1'])
+        y_peak = max(trace['DATA3'])
         #Gets the x value of the max value
-        x_peak = trace['DATA1'].index(y_peak)
+        x_peak = trace['DATA3'].index(y_peak)
         #Takes difference of reference x value and time point x value
         diff = x_peak - x_std_max
         #print(diff)
