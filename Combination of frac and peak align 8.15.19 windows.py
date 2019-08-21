@@ -823,27 +823,21 @@ if skip_align == 'n' or skip_align == 'N':
             standard = SeqIO.read(fsa_names_sorted[k],'abi')
             s_abif_key = standard.annotations['abif_raw'].keys()
             s_trace = defaultdict(list)
-            s_channels = ['DATA1']
-            s_channel2 = ['DATA3']
+            s_channels = ['DATA1','DATA3']
             for sc in s_channels:
                 s_trace[sc] = standard.annotations['abif_raw'][sc]
-
-            for sd in s_channel2:
-                s_trace[sd] = standard.annotations['abif_raw'][sd]
-
-            y_val_data = np.asarray(s_trace['DATA3'])
             #print(len(y_val_data))
-            y_std_max = max(y_val_data)
-            x_std_max = y_val_data.argmax()
+            y_std_max = max(s_trace['DATA3'])
+            x_std_max = s_trace['DATA3'].index(y_std_max)
             #Outputs the graph for the standard peaks
             if rows == 1 or cols == 1:
-                ax[count_1x].plot(y_val_data,color='black')
+                ax[count_1x].plot(s_trace['DATA1'],color='black')
                 ax[count_1x].set_title('Time: ' + time, loc='right',fontsize=8)
                 ax[count_1x].set_xlim(x_min,x_max)
                 ax[count_1x].set_ylim(y_min,y_max)
                 count_1x += 1
             else:
-                ax[0,0].plot(y_val_data,color='black')
+                ax[0,0].plot(s_trace['DATA1'],color='black')
                 ax[0,0].set_title('Time: ' + time, loc='right',fontsize=8)
                 ax[0,0].set_xlim(x_min,x_max)
                 ax[0,0].set_ylim(y_min,y_max)
@@ -866,15 +860,10 @@ if skip_align == 'n' or skip_align == 'N':
         #Creates an empty list as the value in the dict
         trace = defaultdict(list)
         #DATA1 is where all the peak value is held, so only grab this dictionary key
-        channels = ['DATA1']
-        channel2 = ['DATA3']
+        channels = ['DATA1','DATA3']
         #Parses the channels list and returns the values for each key in dictionary
         for c in channels:
             trace[c] = record.annotations['abif_raw'][c]
-        for d in channel2:
-            trace[d] = record.annotations['abif_raw'][d]
-
-        print(len(trace['DATA3']))
         #Get the max value data
         y_peak = max(trace['DATA3'])
         #Gets the x value of the max value
@@ -884,13 +873,9 @@ if skip_align == 'n' or skip_align == 'N':
         #print(diff)
         #Gets x values for vectorization purposes
         array = np.arange(1,len(trace['DATA1'])+1)
-        print(len(array))
+
         #Subtracts difference from array (vectorization)
-        print(diff)
-        if diff > 0:
-            array += diff
-        else:
-            array -= diff
+        array -= diff
 
         #print(trace['DATA1'])
         #np.append(array,zero_list)
