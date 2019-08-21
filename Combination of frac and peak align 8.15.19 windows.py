@@ -585,6 +585,7 @@ if skip_align == 'n' or skip_align == 'N':
     print('--------------------------------------------------------------')
     print()
     #peak_align_path = input("Please enter the path of the folder: ")
+    path_f = input("Please enter in the parent path of the folder: ")
     folder_check = input("If your .fsa files are in a folder, press 'y' to continue, else press 'n': ")
     # This is works for mac
 
