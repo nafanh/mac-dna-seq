@@ -9,6 +9,8 @@ import math
 import os
 #import seaborn as sns
 from pathlib import Path
+import sys
+
 
 
 #Sets visualizations for seaborn
@@ -21,6 +23,8 @@ def atoi(text):
 def natural_keys(text):
     return [atoi(c) for c in re.split(r'(\d+)',text)]
 
+def string_alpha_check(string):
+    return any(i.isalpha() for i in string)
 #Removes the SettingCopyerror
 #pd.options.mode.chained_assignment = None
 
@@ -33,11 +37,34 @@ next line will ask you if you want to skip data analysis and strictly align peak
 . Standard yes and no answers will have to be entered as y or n, respectively.')
 print()
 skip_frac = input("Do you want to skip fractional area vs. size and just plot the graphs? ('y' for yes and 'n' for no'): ")
+#While conditional is true, goes back to top, if true, then exits(akin to break statemnt)
+while skip_frac != 'n' and skip_frac != 'N' and skip_frac != 'Y' and skip_frac != 'y':
+    skip_frac = input("Not valid input please try again: (y for yes and n for no): ")
+
 print('-------------------------------------------------------\n')
 if skip_frac == 'n' or skip_frac == 'N':
     #Gets the .txt file
     path_f = input("Please enter in the parent path of the folder: ")
-    os.chdir(path_f)
+    flag_file = True
+    while flag_file:
+        try:
+            os.chdir(path_f)
+        except FileNotFoundError:
+            print('File does not exist please try again')
+            path_f = input("Please enter in the parent path of the folder: ")
+            continue
+        except FileExistsError:
+            print('File does not exist please try again')
+            path_f = input("Please enter in the parent path of the folder: ")
+            continue
+        except OSError:
+            print('File does not exist please try again')
+            path_f = input("Please enter in the parent path of the folder: ")
+            continue
+        break
+
+
+
     dir_name_list = os.listdir(path_f)
     name = [x for x in dir_name_list if x.endswith('.txt')]
     file = open(name[0],'r')
@@ -48,9 +75,14 @@ if skip_frac == 'n' or skip_frac == 'N':
     print('The current run description from the text file is:', txt_file_name)
     print('-------------------------------------------------')
     file.close()
-    time_underscore = int(input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0. Only for the .txt file with data) \
-Ex: Exo_BurstMM_0.5_TLD_2018-12-18_A06.fsa is a sample file name. The time value for this file is 0.5, which is after the 2nd underscore \
-so you would enter in 2 in this case: "))
+    time_underscore = input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0. Only for the .txt file with data) \
+        Ex: Exo_BurstMM_0.5_TLD_2018-12-18_A06.fsa is a sample file name. The time value for this file is 0.5, which is after the 2nd underscore \
+        so you would enter in 2 in this case: ")
+
+    while string_alpha_check(time_underscore):
+        time_underscore = input("Not valid integer please try again: ")
+
+    time_underscore = int(time_underscore)
 
     #well_underscore = int(input("Please enter after which underscore the well num is: "))
     def filtered_data(name):
@@ -119,7 +151,11 @@ so you would enter in 2 in this case: "))
         print('---------------------------------------\n')
         print(df_int_all)
         print()
-        min_height = int(input("Please enter the minimum height (make sure bigger than int std desired): "))
+        min_height = input("Please enter the minimum height (make sure bigger than int std desired): ")
+        while string_alpha_check(min_height):
+            min_height = input("Not valid integer, please try again: ")
+
+        min_height = int(min_height)
         df_hmin = df.loc[df['Height'].astype(int) > min_height]
 
         # exports data with height above 100 to excel sheet
@@ -200,11 +236,14 @@ so you would enter in 2 in this case: "))
     # Function that outputs the polymer size (ex: 28mer)
     # and places it into a new column
     # ****Have to edit to where the template size is in relation to difference***
+
+
     def size(df):
         #Asks user input for template size
         #original = int(input('Please enter the template size: '))
         #Adjusts the peak number in relation to template size
-
+        global polymer_sizes
+        global range_list_error
         #Polymer length list. Ex: [27mer,28mer,29mer]
         length = []
 
@@ -242,7 +281,11 @@ so you would enter in 2 in this case: "))
                 except ValueError:
                     print("Lower or upper bounds not valid. Please try again.")
             addit = input("Are there any more? Input 'y' for yes and 'n' to end: ")
+            if addit != 'y' and addit != 'n':
+                addit = input("Invalid entry please try again:")
 
+        polymer_sizes = length
+        range_list_error = ranges_list
         #ranges_list2 = sorted(ranges_list, key=lambda x: int("".join([i for i in x if i.isdigit()])))
 
         #Creates a dictionary for polymer length and difference ranges
@@ -286,6 +329,7 @@ so you would enter in 2 in this case: "))
         df["Size"] = final_length_list
 
         return df
+
 
 
     # Returns a set list for x labels (size)
@@ -385,9 +429,11 @@ so you would enter in 2 in this case: "))
         print('-----------------------------------------------------------------------------')
         print(n)
 
-        remove_datapt_quest = input('Do you want to delete a polymer? If so, please enter ''y'', else enter in ''n'': ')
+        remove_datapt_quest = input('Do you want to delete a polymer? If so, please enter ''y'', else enter anything else: ')
         while remove_datapt_quest == 'y' or remove_datapt_quest == 'Y':
             remove_datapt = input('Please enter the polymer name you want to delete (ex: 24mer): ')
+            while 'mer' not in remove_datapt:
+                remove_datapt = input('Not valid polymer name, please try again: ')
             del n[remove_datapt]
             del n[remove_datapt + '/Total']
             headers_list.remove(remove_datapt)
@@ -426,7 +472,10 @@ so you would enter in 2 in this case: "))
 
     #Function that multiplies values by specific concentration
     def conc_fix(df):
-        conc = int(input("Please enter the concentration(nM): "))
+        conc = input("Please enter the concentration(nM): ")
+        while string_alpha_check(conc):
+            conc = input("Not valid integer please try again: ")
+        conc = int(conc)
 
         #Creates new columns containing polymer/total multiplied by concentration
         headers = df.columns.values.tolist()
@@ -521,7 +570,14 @@ so you would enter in 2 in this case: "))
         print(int_std_dist)
 
         #Creates a dataframe that filters out the internal standards and any peaks below certain threshold height
-        polymer = size(int_std_dist)
+        try:
+            polymer = size(int_std_dist)
+        except ValueError:
+            print('Values,bounds,or underscore before time is wrong, please restart the program and try again')
+            print('Time Underscore entered:',time_underscore)
+            print('Polymers entered:',polymer_sizes)
+            print('Ranges entered:',range_list_error)
+            sys.exit()
         print('Here is the Data (Filters out heights below threshold. Note no internal std):')
         print('--------------------------------------------------------')
         print(polymer)
@@ -573,10 +629,15 @@ def divisors(n):
             factors.append([i,int(n/i)])
     return factors
 
-if skip_frac == 'y' or skip_frac == 'Y':
+skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
+while skip_align != 'y' and skip_align != 'n':
+    skip_align = input('Not valid input.(Enter y for yes and n for no): ')
+    if skip_align == 'n' or skip_align == 'y':
+        break
+if (skip_frac == 'y' or skip_frac == 'Y') and (skip_align == 'n' or skip_align == 'N'):
     print('Thank you, skipping fractional area vs size and aligning peaks only')
     path_f = input("Please enter in the parent path of the folder: ")
-skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
+#skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
 if skip_align == 'n' or skip_align == 'N':
     #Program works so you don't have to use the cmd line dir>/b
     print()
@@ -585,20 +646,42 @@ if skip_align == 'n' or skip_align == 'N':
     print('--------------------------------------------------------------')
     print()
     #peak_align_path = input("Please enter the path of the folder: ")
-    folder_check = input("If your .fsa files are in a folder, press 'y' to continue, else press 'n': ")
+    folder_check = input("If your .fsa files are in a subfolder, press 'y' to continue, else press anything: ")
     # This is works for mac
 
     if folder_check == 'y' or folder_check == 'Y':
-        fsa_dir = input('Please enter the name of the folder with the .fsa files: ')
+        fsa_dir = input('Please enter the name of the subfolder with the .fsa files: ')
         dir_name = path_f + '/' + fsa_dir
-        os.chdir(dir_name)
+        while True:
+            try:
+                os.chdir(dir_name)
+            except FileNotFoundError:
+                print('File does not exist please try again')
+                path_f = input("Please enter in the parent path of the folder: ")
+                continue
+            except FileExistsError:
+                print('File does not exist please try again')
+                path_f = input("Please enter in the parent path of the folder: ")
+                continue
+            except OSError:
+                print('File does not exist please try again')
+                path_f = input("Please enter in the parent path of the folder: ")
+                continue
+            break
+        #os.chdir(dir_name)
         # Checks number of .fsa files in the directory
         fsa_names = [x for x in os.listdir(dir_name) if x.endswith('.fsa')]
         length_dir = len(fsa_names)
         print('One of the detected .fsa file names is:', fsa_names[0])
         print('------------------------------------------------------------')
-        time_underscore = int(
-            input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0: "))
+        time_underscore = input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0. Only for the .txt file with data) \
+                Ex: Exo_BurstMM_0.5_TLD_2018-12-18_A06.fsa is a sample file name. The time value for this file is 0.5, which is after the 2nd underscore \
+                so you would enter in 2 in this case: ")
+
+        while string_alpha_check(time_underscore):
+            time_underscore = input("Not valid integer please try again: ")
+
+        time_underscore = int(time_underscore)
         time_list = []
         # Adjusts to make the zero time point the first .fsa file in the directory
         for i in range(len(fsa_names)):
@@ -613,14 +696,36 @@ if skip_align == 'n' or skip_align == 'N':
     else:
         direc_name = path_f
         dir_name = os.listdir(direc_name)
-        os.chdir(direc_name)
+        while True:
+            try:
+                os.chdir(direc_name)
+            except FileNotFoundError:
+                print('File does not exist please try again')
+                path_f = input("Please enter in the parent path of the folder: ")
+                continue
+            except FileExistsError:
+                print('File does not exist please try again')
+                path_f = input("Please enter in the parent path of the folder: ")
+                continue
+            except OSError:
+                print('File does not exist please try again')
+                path_f = input("Please enter in the parent path of the folder: ")
+                continue
+            break
+        #os.chdir(direc_name)
         # Checks number of .fsa files in the directory
         fsa_names = [x for x in dir_name if x.endswith('.fsa')]
         length_dir = len([x for x in dir_name if x.endswith('.fsa')])
         print('One of the detected .fsa file names is:',fsa_names[0])
         print('------------------------------------------------------------')
-        time_underscore = int(
-            input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0: "))
+        time_underscore = input("Please enter after which underscore the time is. (If time is before 1st underscore, enter 0. Only for the .txt file with data) \
+                Ex: Exo_BurstMM_0.5_TLD_2018-12-18_A06.fsa is a sample file name. The time value for this file is 0.5, which is after the 2nd underscore \
+                so you would enter in 2 in this case: ")
+
+        while string_alpha_check(time_underscore):
+            time_underscore = input("Not valid integer please try again: ")
+
+        time_underscore = int(time_underscore)
     #In order to get the text file name from the folder
     #Gets the x values
     #a = [x for x in range(len(trace['DATA1'])+1)]
@@ -676,6 +781,9 @@ if skip_align == 'n' or skip_align == 'N':
     for x in fsa_names_sorted: print (x)
     print()
     print('---------------------------------------------------------------')
+    stop_align = input('If these are not the correct files, press y and rerun program, else press anything')
+    if stop_align == 'y':
+        sys.exit()
 
     num_pts = len(time_list)
     ####Sorts the .fsa files by chronological order
@@ -742,6 +850,9 @@ if skip_align == 'n' or skip_align == 'N':
     print('------------------------------------------------------------------------------')
     rows = int(input("Please enter in the desired number of rows: "))
     cols = int(input("Please enter in the desired number of columns: "))
+    while rows * cols != num_pts:
+        rows = int(input("Dimensions incompatible please try again. Num rows: "))
+        cols = int(input("Num Cols: "))
     #Creates figure, axis objects for subplot
     fig,ax = plt.subplots(rows,cols,sharex=True,sharey=True)
     # fig = plt.figure()
@@ -877,10 +988,10 @@ if skip_align == 'n' or skip_align == 'N':
         #Gets x values for vectorization purposes
         array = np.arange(1,len(trace['DATA1'])+1)
         #Subtracts difference from array (vectorization)
-        if diff > 0:
-            array -= diff
-        else:
-            array += diff
+        # if diff > 0:
+        array -= diff
+        # else:
+        #     array += diff
 
         #print(trace['DATA1'])
         #np.append(array,zero_list)
@@ -920,191 +1031,191 @@ if skip_align == 'n' or skip_align == 'N':
     plt.show()
 
 
-print()
-print('Now plotting 3d')
-print('-------------------------------')
-
-
-
-
-
-    # !/usr/bin/env python3
-from Bio import SeqIO
-from collections import defaultdict
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-import pprint
-from mpl_toolkits import mplot3d
-from mpl_toolkits.mplot3d import Axes3D
-fig = plt.figure()
-ax = plt.axes(projection='3d')
-#Counter for subplot number
-subplot_num = 1
-#Creates a list for all the differences. Will take the largest difference to set the axes x min and x max (y min and y max for 3d scatter)
-diff_list = []
-#parses the directory for .fsa files
-for k in range(length_dir):
-  if k == 0:
-      #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
-      first_dp_split = fsa_names_sorted[k].split('_')
-      time = first_dp_split[time_underscore]
-      standard = SeqIO.read(fsa_names_sorted[k],'abi')
-      s_abif_key = standard.annotations['abif_raw'].keys()
-      s_trace = defaultdict(list)
-      s_channels = ['DATA1','DATA3']
-      for sc in s_channels:
-          #s_trace['DATA1'] = y values
-          s_trace[sc] = standard.annotations['abif_raw'][sc]
-      x_values = np.asarray(s_trace['DATA1'])
-      y_std_max = max(s_trace['DATA3'])
-      x_std_max = s_trace['DATA3'].index(y_std_max)
-      #print(x_values[x_min:x_max+1])
-
-      z_values = x_values[x_min:x_max+1]
-      x_values_time = [float(time)] * len(z_values)
-      y_values = np.arange(x_min,x_max+1)
-  ##    print(len(x_values))
-  ##    print(len(y_values))
-  ##    print(len(z_values))
-  #x_values = np.arange(1,len(y_values)+1)
-  ##
-  ##
-      sc_std = ax.plot(x_values_time,y_values,z_values, alpha=0.7)
-      continue
-
-  subplot_num += 1
-  name_split = fsa_names_sorted[k].split('_')
-  time_peak = name_split[time_underscore]
-  #opens up the FSA file
-  record = SeqIO.read(fsa_names_sorted[k],'abi')
-  #Record returns a bunch of dictionaries. Use this line to get the dictionary
-  #keys of abif_raw only
-  abif_key = record.annotations['abif_raw'].keys()
-  #Creates an empty list as the value in the dict
-  trace = defaultdict(list)
-  #DATA1 is where all the peak value is held, so only grab this dictionary key
-  channels = ['DATA1','DATA3']
-  #Parses the channels list and returns the values for each key in dictionary
-  for c in channels:
-      trace[c] = record.annotations['abif_raw'][c]
-  #Xvalues for time pts
-  x_values_non_std = np.asarray(trace['DATA1'])
-  #Numpy for y values (xvalues_non_std)
-
-  #Get the max value data
-  y_peak = max(trace['DATA3'])
-  #Gets the x value of the max value
-  x_peak = trace['DATA3'].index(y_peak)
-  #Takes difference of reference x value and time point x value
-  diff = x_peak - x_std_max
-  diff_list.append(diff)
-  #y_values_append_values = np.arange(x_max - diff, x_max)
-  #print(diff)
-
-  #X_values_non_std are really the y values on a 2d graph
-  y_values_non_std = np.arange(x_min,x_max+1) - diff
-
-  x_min_diff_first_x = np.where(y_values_non_std == x_min)
-  #print(x_min_diff_first_x)
-  # if x_min_diff_first_x[0].size != 0:
-  #     x_min_diff_first_x_range = np.arange(x_min_diff_first_x[0])
-  #     #print(x_min_diff_first_x_range)
-  #     y_values_non_std = np.delete(y_values_non_std,x_min_diff_first_x_range)
-  # print(y_values_non_std)
-  #print(x_min_diff_first_x)
-  #print(y_values_non_std)
-  #x_min_diff_first_x_np = np.arange(x_min_diff_first_x)
-  #np.delete(y_values_non_std,x_min_diff_first_x_np)
-  z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
-  x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
-
-  diff_range_list = np.arange(diff)
-
-  #Removes the values less than x_min for positive differences
-  y_values_non_std = np.delete(y_values_non_std, diff_range_list)
-  z_values_non_std = np.delete(z_values_non_std, diff_range_list)
-  x_values_time_non_std = np.delete(x_values_time_non_std, diff_range_list)
-
-  print(diff)
-
-  zero_list = [0] * diff
-  # if diff > 0:
-
-  #Positive differences, we will
-  if diff > 0:
-    y_values_append_values = np.arange(x_max - diff, x_max)
-    z_values_append_values = np.array(zero_list)
-    x_values_time_append_values = np.array([float(time_peak)] * diff)
-
-    y_values_non_std = np.append(y_values_non_std, y_values_append_values)
-    z_values_non_std = np.append(z_values_non_std, z_values_append_values)
-    x_values_time_non_std = np.append(x_values_time_non_std, x_values_time_append_values)
-    print(len(y_values_non_std))
-
-  else:
-    y_values_append_values = np.arange(x_min , x_min - diff + 1)
-    x_range = x_max - x_min
-    y_values_delete_values_end = [x for x in range(x_range+1, x_range - diff + 2)]
-    y_values_delete_values_begin = [x for x in range(0,abs(diff)+1)]
-    #y_values_delete_values = np.arange(x_max,x_max - diff)
-
-    z_values_append_values = np.array(zero_list)
-    x_values_time_append_values = np.array([float(time_peak)] * diff)
-
-    y_values_non_std = np.insert(y_values_non_std, 0, y_values_append_values)
-    y_values_non_std = np.delete(y_values_non_std, y_values_delete_values_end)
-    z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
-    x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
-    #print(b)
-    print(len(y_values_non_std))
-    z_values_non_std = np.append(z_values_non_std, z_values_append_values)
-    x_values_time_non_std = np.append(x_values_time_non_std, x_values_time_append_values)
-
-
-
-
-
-
-  # else:
-  #   y_values_append_values = np.arange(x_max + diff, x_max)
-
-  #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
-  #np.append(y_values_non_std,zero_list)
-
-  print(y_values_non_std)
-
-  sc_non_std = ax.plot(x_values_time_non_std,y_values_non_std,z_values_non_std, alpha=0.7)
-ax.set_ylim(x_min,x_max)
-ax.set_zlim(y_min,y_max)
-ax.set_xlabel('Time')
-ax.set_ylabel('Data Point')
-ax.set_zlabel('RFU')
-#make the panes transparent
-# ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-# ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-# ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-# ax.set_facecolor('grey')
-#make the grid lines transparent
-# ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-# ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-# ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-
-
-# #Gets x values for vectorization purposes
-# array = np.arange(1,len(trace['DATA1'])+1)
-# #Subtracts difference from array (vectorization)
-# array -= diff
-
-
-
-
-
-
-
-
-fig.show()
+# print()
+# print('Now plotting 3d')
+# print('-------------------------------')
+#
+#
+#
+#
+#
+#     # !/usr/bin/env python3
+# from Bio import SeqIO
+# from collections import defaultdict
+# import pandas as pd
+# import numpy as np
+# import matplotlib.pyplot as plt
+# import os
+# import pprint
+# from mpl_toolkits import mplot3d
+# from mpl_toolkits.mplot3d import Axes3D
+# fig = plt.figure()
+# ax = plt.axes(projection='3d')
+# #Counter for subplot number
+# subplot_num = 1
+# #Creates a list for all the differences. Will take the largest difference to set the axes x min and x max (y min and y max for 3d scatter)
+# diff_list = []
+# #parses the directory for .fsa files
+# for k in range(length_dir):
+#   if k == 0:
+#       #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
+#       first_dp_split = fsa_names_sorted[k].split('_')
+#       time = first_dp_split[time_underscore]
+#       standard = SeqIO.read(fsa_names_sorted[k],'abi')
+#       s_abif_key = standard.annotations['abif_raw'].keys()
+#       s_trace = defaultdict(list)
+#       s_channels = ['DATA1','DATA3']
+#       for sc in s_channels:
+#           #s_trace['DATA1'] = y values
+#           s_trace[sc] = standard.annotations['abif_raw'][sc]
+#       x_values = np.asarray(s_trace['DATA1'])
+#       y_std_max = max(s_trace['DATA3'])
+#       x_std_max = s_trace['DATA3'].index(y_std_max)
+#       #print(x_values[x_min:x_max+1])
+#
+#       z_values = x_values[x_min:x_max+1]
+#       x_values_time = [float(time)] * len(z_values)
+#       y_values = np.arange(x_min,x_max+1)
+#   ##    print(len(x_values))
+#   ##    print(len(y_values))
+#   ##    print(len(z_values))
+#   #x_values = np.arange(1,len(y_values)+1)
+#   ##
+#   ##
+#       sc_std = ax.plot(x_values_time,y_values,z_values, alpha=0.7)
+#       continue
+#
+#   subplot_num += 1
+#   name_split = fsa_names_sorted[k].split('_')
+#   time_peak = name_split[time_underscore]
+#   #opens up the FSA file
+#   record = SeqIO.read(fsa_names_sorted[k],'abi')
+#   #Record returns a bunch of dictionaries. Use this line to get the dictionary
+#   #keys of abif_raw only
+#   abif_key = record.annotations['abif_raw'].keys()
+#   #Creates an empty list as the value in the dict
+#   trace = defaultdict(list)
+#   #DATA1 is where all the peak value is held, so only grab this dictionary key
+#   channels = ['DATA1','DATA3']
+#   #Parses the channels list and returns the values for each key in dictionary
+#   for c in channels:
+#       trace[c] = record.annotations['abif_raw'][c]
+#   #Xvalues for time pts
+#   x_values_non_std = np.asarray(trace['DATA1'])
+#   #Numpy for y values (xvalues_non_std)
+#
+#   #Get the max value data
+#   y_peak = max(trace['DATA3'])
+#   #Gets the x value of the max value
+#   x_peak = trace['DATA3'].index(y_peak)
+#   #Takes difference of reference x value and time point x value
+#   diff = x_peak - x_std_max
+#   diff_list.append(diff)
+#   #y_values_append_values = np.arange(x_max - diff, x_max)
+#   #print(diff)
+#
+#   #X_values_non_std are really the y values on a 2d graph
+#   y_values_non_std = np.arange(x_min,x_max+1) - diff
+#
+#   x_min_diff_first_x = np.where(y_values_non_std == x_min)
+#   #print(x_min_diff_first_x)
+#   # if x_min_diff_first_x[0].size != 0:
+#   #     x_min_diff_first_x_range = np.arange(x_min_diff_first_x[0])
+#   #     #print(x_min_diff_first_x_range)
+#   #     y_values_non_std = np.delete(y_values_non_std,x_min_diff_first_x_range)
+#   # print(y_values_non_std)
+#   #print(x_min_diff_first_x)
+#   #print(y_values_non_std)
+#   #x_min_diff_first_x_np = np.arange(x_min_diff_first_x)
+#   #np.delete(y_values_non_std,x_min_diff_first_x_np)
+#   z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
+#   x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
+#
+#   diff_range_list = np.arange(diff)
+#
+#   #Removes the values less than x_min for positive differences
+#   y_values_non_std = np.delete(y_values_non_std, diff_range_list)
+#   z_values_non_std = np.delete(z_values_non_std, diff_range_list)
+#   x_values_time_non_std = np.delete(x_values_time_non_std, diff_range_list)
+#
+#   print(diff)
+#
+#   zero_list = [0] * diff
+#   # if diff > 0:
+#
+#   #Positive differences, we will
+#   if diff > 0:
+#     y_values_append_values = np.arange(x_max - diff, x_max)
+#     z_values_append_values = np.array(zero_list)
+#     x_values_time_append_values = np.array([float(time_peak)] * diff)
+#
+#     y_values_non_std = np.append(y_values_non_std, y_values_append_values)
+#     z_values_non_std = np.append(z_values_non_std, z_values_append_values)
+#     x_values_time_non_std = np.append(x_values_time_non_std, x_values_time_append_values)
+#     print(len(y_values_non_std))
+#
+#   else:
+#     y_values_append_values = np.arange(x_min , x_min - diff + 1)
+#     x_range = x_max - x_min
+#     y_values_delete_values_end = [x for x in range(x_range+1, x_range - diff + 2)]
+#     y_values_delete_values_begin = [x for x in range(0,abs(diff)+1)]
+#     #y_values_delete_values = np.arange(x_max,x_max - diff)
+#
+#     z_values_append_values = np.array(zero_list)
+#     x_values_time_append_values = np.array([float(time_peak)] * diff)
+#
+#     y_values_non_std = np.insert(y_values_non_std, 0, y_values_append_values)
+#     y_values_non_std = np.delete(y_values_non_std, y_values_delete_values_end)
+#     z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
+#     x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
+#     #print(b)
+#     print(len(y_values_non_std))
+#     z_values_non_std = np.append(z_values_non_std, z_values_append_values)
+#     x_values_time_non_std = np.append(x_values_time_non_std, x_values_time_append_values)
+#
+#
+#
+#
+#
+#
+#   # else:
+#   #   y_values_append_values = np.arange(x_max + diff, x_max)
+#
+#   #ax = fig.add_subplot(3,3,subplot_num,projection='3d')
+#   #np.append(y_values_non_std,zero_list)
+#
+#   print(y_values_non_std)
+#
+#   sc_non_std = ax.plot(x_values_time_non_std,y_values_non_std,z_values_non_std, alpha=0.7)
+# ax.set_ylim(x_min,x_max)
+# ax.set_zlim(y_min,y_max)
+# ax.set_xlabel('Time')
+# ax.set_ylabel('Data Point')
+# ax.set_zlabel('RFU')
+# #make the panes transparent
+# # ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+# # ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+# # ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+# # ax.set_facecolor('grey')
+# #make the grid lines transparent
+# # ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+# # ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+# # ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+#
+#
+# # #Gets x values for vectorization purposes
+# # array = np.arange(1,len(trace['DATA1'])+1)
+# # #Subtracts difference from array (vectorization)
+# # array -= diff
+#
+#
+#
+#
+#
+#
+#
+#
+# fig.show()
 
 
 
