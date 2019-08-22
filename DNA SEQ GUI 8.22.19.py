@@ -260,6 +260,12 @@ if skip_frac == 'no' or skip_frac == 'No':
         df = pd.DataFrame(col_data, columns=headers)
         #print(col_data)
 
+        # fil_time_list = df['Time'].tolist()
+        # print(fil_time_list)
+        # if all(x == fil_time_list[0] for x in fil_time_list):
+        #     sg.Popup('Underscore value entered invalid.')
+
+
         # filters height above user input. Note that if filter height
         # is above internal standard height, then error will raise
         # have to add try/except block here for future use
@@ -272,6 +278,11 @@ if skip_frac == 'no' or skip_frac == 'No':
         sg.PopupScrolled('These are all the internal std. peaks','--------------------------------', df_int_all,non_blocking=True)
         print()
 
+        quit_prompt = sg.PopupGetText('If the time values are not consistent with what you want,'
+                                      'please type ''Quit'' and rerun the script with the correct'
+                                      'input')
+        if quit_prompt == 'Quit':
+            sys.exit()
         # while True:
 
         min_height = sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired)",
@@ -296,12 +307,12 @@ if skip_frac == 'no' or skip_frac == 'No':
         #     sg.Popup('Invalid number entered')
 
         df_hmin = df.loc[df['Height'].astype(int) > min_height]
-
-
         # exports data with height above 100 to excel sheet
-        #export_excel_filtered = df.to_csv('Export_data_filtered_Hmin.csv',sep=',')
+        # export_excel_filtered = df.to_csv('Export_data_filtered_Hmin.csv',sep=',')
+
         f.close()
         return df_hmin
+
 
 
     def sample_distance(filtered_data):
@@ -412,7 +423,7 @@ if skip_frac == 'no' or skip_frac == 'No':
 
         while True:  # Event Loop
             event_two, values_two = window.Read()  # Please try and use as high of a timeout value as you can
-            print(event_two,values_two)
+            #print(event_two,values_two)
             if event_two is None or event_two == 'Cancel':  # if user closed the window using X or clicked Quit button
                 sys.exit()
 
@@ -846,7 +857,7 @@ def divisors(n):
     return factors
 
 #skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
-skip_align=sg.PopupGetText('Do you want to skip peak aligning? Enter y for yes and n for no:')
+skip_align=sg.PopupGetText('Do you want to skip peak aligning? Enter anything for yes and n for no:')
 if (skip_frac == 'y' or skip_frac == 'Y') and (skip_align == 'n' or skip_align == 'N'):
     print('Thank you, skipping fractional area vs size and aligning peaks only')
 # path_f = input("Please enter in the parent path of the folder: ")
@@ -1147,7 +1158,9 @@ if skip_align == 'n' or skip_align == 'N':
     ]
     window_four = sg.Window('Pic dimensions', layout_four)
 
+    
     while True:
+        flag_test = False
         event_four, values_four = window_four.Read()
         try:
             rows = int(values_four['_ROWS_'])
@@ -1159,12 +1172,19 @@ if skip_align == 'n' or skip_align == 'N':
             sg.Popup('Rows and columns do not match the number of pts, try again')
             # if event_four == 'Submit':
             event_four, values_four = window_four.Read()
-            rows = int(values_four['_ROWS_'])
-            cols = int(values_four['_COLS_'])
+            try:
+                rows = int(values_four['_ROWS_'])
+                cols = int(values_four['_COLS_'])
+            except ValueError:
+                sg.Popup('Not valid integer please try again')
+                flag_test = True
+                break
             if rows * cols == num_pts:
                 break
             else:
                 continue
+        if flag_test:
+            continue
         break
 
     window_four.Close()
