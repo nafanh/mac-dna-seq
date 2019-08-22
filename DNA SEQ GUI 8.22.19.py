@@ -280,7 +280,7 @@ if skip_frac == 'no' or skip_frac == 'No':
 
         quit_prompt = sg.PopupGetText('If the time values are not consistent with what you want,'
                                       'please type ''Quit'' and rerun the script with the correct'
-                                      'input')
+                                      'input. Else press ''Cancel''')
         if quit_prompt == 'Quit':
             sys.exit()
         # while True:
@@ -857,7 +857,7 @@ def divisors(n):
     return factors
 
 #skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
-skip_align=sg.PopupGetText('Do you want to skip peak aligning? Enter anything for yes and n for no:')
+skip_align=sg.PopupGetText('Do you want to skip peak aligning? If yes, press y or cancel, jf no press n')
 if (skip_frac == 'y' or skip_frac == 'Y') and (skip_align == 'n' or skip_align == 'N'):
     print('Thank you, skipping fractional area vs size and aligning peaks only')
 # path_f = input("Please enter in the parent path of the folder: ")
