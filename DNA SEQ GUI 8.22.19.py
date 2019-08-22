@@ -95,7 +95,7 @@ if skip_frac == 'no' or skip_frac == 'No':
     check_under = 0
     while True:
         event_first, values_first = window_first.Read()
-        print(event_first,values_first)
+        #print(event_first,values_first)
         # text = values_first[0]
         if event_first is None:
             sys.exit()
@@ -106,6 +106,7 @@ if skip_frac == 'no' or skip_frac == 'No':
         #     sg.Popup('No Number Supplied')
         if event_first == 'Submit':
 
+            global txt_file_name_u
             try:
                 text = values_first['_DIR_']
                 if not text:
@@ -115,7 +116,7 @@ if skip_frac == 'no' or skip_frac == 'No':
                 second_line = file.readline()
                 split_second_line = second_line.split()
                 txt_file_name = split_second_line[1]
-                #txt_file_name_u = second_line.split('_')
+                txt_file_name_u = second_line.split('_')
                 window_first.Element('_OUTPUT_').Update(txt_file_name)
                 file.close()
             except FileNotFoundError:
@@ -126,14 +127,64 @@ if skip_frac == 'no' or skip_frac == 'No':
                 sg.Popup('Not valid .txt file')
 
         if event_first == 'Submit Number':
+            time_underscore = int(values_first['_TIME_'])
+            check_under_length = len(txt_file_name_u)
+            if check_under_length < time_underscore:
+                sg.Popup('Invalid underscore number. Either negative or greater than total num of underscores')
+                continue
+            try:
+                txt_file_name_u_test = txt_file_name_u[time_underscore]
+            except:
+                sg.Popup('Underscore value is greater than total number of underscores. Please try again.')
+                continue
+
+            if string_alpha_check(txt_file_name_u[time_underscore]) or ('\\' in txt_file_name_u[time_underscore]) or \
+                    ('-' in txt_file_name_u[time_underscore]):
+                sg.Popup('Underscore value entered gives invalid time, please try again.')
+                continue
+
             try:
                 time_underscore = int(values_first['_TIME_'])
-                #check_under = txt_file_name_u[time_underscore]
                 # window_first.Close()
                 if time_underscore != 'None':
                     break
             except:
                 sg.Popup('No valid number. Please try again')
+
+
+
+    # if string_alpha_check(time_u):
+    #     # time_u = sg.PopupGetText('Not valid integer please try again')
+    #     sg.Popup('Not valid integer please try again.')
+    #     # event_three, values_three = window_three.Read()
+    #     continue
+    # time_list = []
+
+    # split_check = len(fsa_names[0].split('_'))
+    # split_check_list = fsa_names[0].split('_')
+    # if split_check < int(time_u):
+    #     sg.Popup('Invalid underscore number. Either negative or greater than total num of underscores')
+    #     continue
+    # try:
+    #     time_value_test = split_check_list[int(time_u)]
+    # except:
+    #     sg.Popup('Underscore value is greater than total number of underscores. Please try again.')
+    #     continue
+    #
+    # if string_alpha_check(time_value_test) or ('\\' in time_value_test) or ('-' in time_value_test):
+    #     sg.Popup('Underscore value entered gives invalid time, please try again.')
+    #     continue
+    #
+    # # Adjusts to make the zero time point the first .fsa file in the directory
+    # for i in range(len(fsa_names)):
+    #
+    #     name_list = fsa_names[i].split('_')
+    #     time_value = name_list[int(time_u)]
+    #
+    #     if '.' not in time_value:
+    #         time_list.append(int(time_value))
+    #         continue
+    #     time_list.append(float(time_value))
 
     window_first.Close()
 #------------------------------------------------------------------------------------------------------------
@@ -865,8 +916,12 @@ if skip_align == 'n' or skip_align == 'N':
             if split_check < int(time_u):
                 sg.Popup('Invalid underscore number. Either negative or greater than total num of underscores')
                 continue
+            try:
+                time_value_test = split_check_list[int(time_u)]
+            except:
+                sg.Popup('Underscore value is greater than total number of underscores. Please try again.')
+                continue
 
-            time_value_test = split_check_list[int(time_u)]
             if string_alpha_check(time_value_test) or ('\\' in time_value_test) or ('-' in time_value_test):
                 sg.Popup('Underscore value entered gives invalid time, please try again.')
                 continue
