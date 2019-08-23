@@ -289,7 +289,7 @@ if skip_frac == 'no' or skip_frac == 'No':
         # while True:
 
         min_height = sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired)",
-                                     "Minimum Height", )
+                                     title = 'Minimum height')
         if min_height == None or min_height == 'Cancel':
             sys.exit()
 
@@ -300,7 +300,7 @@ if skip_frac == 'no' or skip_frac == 'No':
                 min_height = int(min_height)
 
             except ValueError:
-                min_height = sg.PopupGetText('Not valid integer, please try again')
+                min_height = sg.PopupGetText('Not valid integer, please try again',title='Error')
                 continue
             break
 
@@ -334,7 +334,7 @@ if skip_frac == 'no' or skip_frac == 'No':
 
         sg.PopupScrolled('These are the internal std. peaks after filtering', '------------------------------',
                          df_int_std,
-                         non_blocking=True,location=(200,500))
+                         non_blocking=True,location=(200,500),title='Post Filter Int. Std. Peaks')
         # makes list of int standard data points
         int_stdlist = df_int_std['Data Point'].tolist()
 
@@ -450,11 +450,11 @@ if skip_frac == 'no' or skip_frac == 'No':
                     low_r = int(values_two['_LOWER_'])
                     upper_r = int(values_two['_UPPER_'])
                 except:
-                    sg.Popup('Invalid integer for bounds, please try again.')
+                    sg.Popup('Invalid integer for bounds, please try again.',title='Error')
                     continue
                 # while True:
                 if upper_r < low_r:
-                    sg.Popup('Upper Bound less than lower bound, please try again')
+                    sg.Popup('Upper Bound less than lower bound, please try again',title='Error')
                     # event_two, values_two = window.Read()
                     continue
                     # low_r = int(sg.PopupGetText('Lower bound (inclusive'))
@@ -625,18 +625,20 @@ if skip_frac == 'no' or skip_frac == 'No':
         sg.PopupScrolled(
             'This is the table for fractional area vs. size. Please analyze to see if you want to delete outliers.',
             '-----------------------------------------------------------------------------',
-            n, non_blocking=True, location=(0,400))
+            n, non_blocking=True, location=(0,400),title='Fractional Area vs. Size Table')
 
         # remove_datapt_quest = input('Do you want to delete a polymer? If so, please enter ''y'', else enter in ''n'': ')
         remove_datapt_quest = sg.PopupGetText('Do you want to delete a polymer? If so, please enter ''y'', press enter '
-                                              'for no:')
+                                              'for no:',title='Polymer Deletion')
         while remove_datapt_quest == 'y' or remove_datapt_quest == 'Y':
             # remove_datapt = input('Please enter the polymer name you want to delete (ex: 24mer): ')
-            remove_datapt = sg.PopupGetText('Please enter the polymer name you want to delete (ex: 24mer): ')
+            remove_datapt = sg.PopupGetText('Please enter the polymer name you want to delete (ex: 24mer): ','Polymer '
+                                                                                                             'Deltion '
+                                                                                                             'Name')
             if remove_datapt == None:
                 break
             while remove_datapt not in n.columns:
-                remove_datapt = sg.PopupGetText('Polymer not in table, please try again')
+                remove_datapt = sg.PopupGetText('Polymer not in table, please try again',title='Error')
                 if remove_datapt == None:
                     break
             del n[remove_datapt]
@@ -647,7 +649,7 @@ if skip_frac == 'no' or skip_frac == 'No':
             n['Total'] = n.iloc[:, :int(len(n.columns) / 2)].sum(axis=1)
             # remove_datapt_quest= input('Any more polymers you want to delete? Please enter y for yes and n for no: ')
             remove_datapt_quest = sg.PopupGetText(
-                'Any more polymers you want to delete? Please enter y for yes and n for no: ')
+                'Any more polymers you want to delete? Please enter y for yes and n for no: ',title='Additional Polymers')
         for i in range(len(headers_list) - 1):
             divide_name = headers_list[i] + '/' + headers_list[-1]
             n[divide_name] = n.iloc[:, i] / n.iloc[:, len(headers_list) - 1]
@@ -698,7 +700,7 @@ if skip_frac == 'no' or skip_frac == 'No':
                     conc = int(values_five['_CONC_'])
                     csv_name = values_five['_EXNAME_']
                 except:
-                    sg.Popup("Concentration of name is incompatible, please try again.")
+                    sg.Popup("Concentration of name is incompatible, please try again.",title='Conc. Error')
                     event_five, values_five = window_five.Read()
 
                     continue
@@ -801,7 +803,7 @@ if skip_frac == 'no' or skip_frac == 'No':
                          '--------------------------------------------------------',
                          diff_list(int_std_dist),
                          '--------------------------------------------------------',
-                         int_std_dist, non_blocking=True,location=(1000,500))
+                         int_std_dist, non_blocking=True,location=(1000,500),title='Difference Ranges')
         # Creates a dataframe that filters out the internal standards and any peaks below certain threshold height
         polymer = size(int_std_dist)
         # print('Here is the Data (Filters out heights below threshold. Note no internal std):')
@@ -809,7 +811,7 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print(polymer)
         sg.PopupScrolled('Here is the Data (Filters out heights below threshold. Note no internal std):',
                          '--------------------------------------------------------',
-                         polymer, non_blocking=True)
+                         polymer, non_blocking=True,title='Table with Difference Ranges')
         # get_size_values(polymer)
         print()
 
@@ -819,7 +821,7 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print('--------------------------------------------------------')
         # print(a)
         sg.PopupScrolled('Here is the data (Before conc. fix', '----------------------------------------',
-                         a, non_blocking=True)
+                         a, non_blocking=True,title='Before conc. fix')
 
         # Gets the time, length, and fractional area into lists
         time = get_time_values(a)
@@ -839,7 +841,7 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print(fix)
         sg.PopupScrolled('Here is the updated table data (after concentration fix):',
                          '--------------------------------------------------------',
-                         fix, non_blocking=True)
+                         fix, non_blocking=True,title='After Conc. Fix')
 
         # Plots the size, fractional area, and length using matplotlib
         # Returns a bar graph with time as the label
@@ -867,11 +869,12 @@ def divisors(n):
 
 
 # skip_align = input('Do you want to skip peak aligning? Enter y for yes and n for no: ')
-skip_align = sg.PopupGetText('Do you want to skip peak aligning? If yes, press y or cancel, jf no press n')
+skip_align = sg.PopupGetText('Do you want to skip peak aligning? If yes, press y or cancel, if no press n',title='Skip '
+                                                                                                                 'Alignment')
 if (skip_frac == 'y' or skip_frac == 'Y') and (skip_align == 'n' or skip_align == 'N'):
     print('Thank you, skipping fractional area vs size and aligning peaks only')
     # path_f = input("Please enter in the parent path of the folder: ")
-    path_f = sg.PopupGetFolder('Please enter in the parent path of the folder:')
+    path_f = sg.PopupGetFolder('Please enter in the parent path of the folder:',title='Folder Location')
 
 if skip_align == 'n' or skip_align == 'N':
     # Program works so you don't have to use the cmd line dir>/b
@@ -917,10 +920,10 @@ if skip_align == 'n' or skip_align == 'N':
             try:
                 fsa_names = [x for x in os.listdir(values_three['_FOLDER_']) if x.endswith('.fsa')]
             except FileNotFoundError:
-                sg.Popup('Cannot find folder, please try again.')
+                sg.Popup('Cannot find folder, please try again.',title='Error')
                 continue
             if fsa_names == []:
-                fsa_folder = sg.Popup('Folder can not detect .fsa files, please try again')
+                fsa_folder = sg.Popup('Folder can not detect .fsa files, please try again',title='Error')
                 continue
                 #fsa_names = [x for x in os.listdir(fsa_folder) if x.endswith('.fsa')]
 
@@ -929,23 +932,23 @@ if skip_align == 'n' or skip_align == 'N':
         if event_three == 'Enter':
             if string_alpha_check(time_u):
                 # time_u = sg.PopupGetText('Not valid integer please try again')
-                sg.Popup('Not valid integer please try again.')
+                sg.Popup('Not valid integer please try again.',title='Error')
                 # event_three, values_three = window_three.Read()
                 continue
             time_list = []
             split_check = len(fsa_names[0].split('_'))
             split_check_list = fsa_names[0].split('_')
             if split_check < int(time_u):
-                sg.Popup('Invalid underscore number. Either negative or greater than total num of underscores')
+                sg.Popup('Invalid underscore number. Either negative or greater than total num of underscores',title='Error')
                 continue
             try:
                 time_value_test = split_check_list[int(time_u)]
             except:
-                sg.Popup('Underscore value is greater than total number of underscores. Please try again.')
+                sg.Popup('Underscore value is greater than total number of underscores. Please try again.',title='Error')
                 continue
 
             if string_alpha_check(time_value_test) or ('\\' in time_value_test) or ('-' in time_value_test):
-                sg.Popup('Underscore value entered gives invalid time, please try again.')
+                sg.Popup('Underscore value entered gives invalid time, please try again.',title='Error')
                 continue
 
             # Adjusts to make the zero time point the first .fsa file in the directory
@@ -979,7 +982,7 @@ if skip_align == 'n' or skip_align == 'N':
                              '----------------------------------------',
                              "Files Aligning:",
                              '-----------------------------------------',
-                             str(fsa_names_sorted))
+                             str(fsa_names_sorted),title='FSA files detected')
         if event_three == 'Submit Bounds':
             x_min = int(values_three['_MINX_'])
             x_max = int(values_three['_MAXX_'])
@@ -987,7 +990,7 @@ if skip_align == 'n' or skip_align == 'N':
             y_max = int(values_three['_MAXY_'])
             if x_min > x_max or y_min > y_max:
                 sg.Popup('x/y min greater than x/y max. '
-                         'Please try again')
+                         'Please try again',title='Error')
                 # event_three,values_three = window_three.Read()
                 continue
             break
@@ -1145,7 +1148,7 @@ if skip_align == 'n' or skip_align == 'N':
 
     sg.PopupScrolled('Here are all the possible dimensions of the figure. Please choose which one you want:',
                      '----------------------------------------------------------------------------------------',
-                     dim_table, non_blocking=True)
+                     dim_table, non_blocking=True,title='Dimension Possibilities')
 
     layout_four = [
         [sg.Text('Desired Num of Rows:'), sg.Input(key='_ROWS_')],
@@ -1161,17 +1164,17 @@ if skip_align == 'n' or skip_align == 'N':
             rows = int(values_four['_ROWS_'])
             cols = int(values_four['_COLS_'])
         except ValueError:
-            sg.Popup('Not valid integer please try again.')
+            sg.Popup('Not valid integer please try again.',title='Error')
             continue
         while event_four == 'Submit' and rows * cols != num_pts:
-            sg.Popup('Rows and columns do not match the number of pts, try again')
+            sg.Popup('Rows and columns do not match the number of pts, try again',title='Error')
             # if event_four == 'Submit':
             event_four, values_four = window_four.Read()
             try:
                 rows = int(values_four['_ROWS_'])
                 cols = int(values_four['_COLS_'])
             except ValueError:
-                sg.Popup('Not valid integer please try again')
+                sg.Popup('Not valid integer please try again',title='Error')
                 flag_test = True
                 break
             if rows * cols == num_pts:
@@ -1296,7 +1299,7 @@ if skip_align == 'n' or skip_align == 'N':
     # print()
     # print('Now plotting 3d')
     # print('-------------------------------')
-    sg.Popup('Now Plotting 3d')
+    sg.Popup('Now Plotting 3d',title='3D plotting')
 
     # !/usr/bin/env python3
     from Bio import SeqIO
@@ -1310,11 +1313,11 @@ if skip_align == 'n' or skip_align == 'N':
     from mpl_toolkits.mplot3d import Axes3D
 
     # do_threed = input('Do you want to plot 3d? Press y for yes and anything else for no')
-    do_threed = sg.PopupGetText('Do you want to plot 3d? Press y for yes and anything else for no')
+    do_threed = sg.PopupGetText('Do you want to plot 3d? Press y for yes and anything else for no',title='3D prompt')
     if do_threed == 'y':
         pass
     else:
-        fig.show()
+        plt.show()
         sys.exit()
     fig2 = plt.figure()
     ax2 = plt.axes(projection='3d')
@@ -1469,6 +1472,7 @@ if skip_align == 'n' or skip_align == 'N':
     # #Subtracts difference from array (vectorization)
     # array -= diff
 
-    fig.show()
-    fig2.show()
-
+    plt.show()
+    plt.close(fig)
+    plt.close(fig2)
+    sys.exit()
