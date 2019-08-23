@@ -10,7 +10,7 @@ import os
 #import seaborn as sns
 from pathlib import Path
 import sys
-
+import time as t
 
 
 #Sets visualizations for seaborn
@@ -822,13 +822,20 @@ if skip_align == 'n' or skip_align == 'N':
     ##while length_dir > num_pts or length_dir < num_pts:
     ##    num_pts = int(input("Number of time points not consistent \
     ##with the number of .fsa files. Please enter number of time points again: "))
-    x_min = int(input("Please enter the min. x value: "))
-    x_max = int(input("Please enter max x value: "))
+    while True:
+        try:
+            x_min = int(input("Please enter the min. x value: "))
+            x_max = int(input("Please enter max x value: "))
+            y_min = int(input("Please enter min y value: "))
+            y_max = int(input("Please enter max y value: "))
+        except ValueError:
+            print('Invalid integers entered, please try again')
+            continue
+        break
     while x_min > x_max:
         x_min = int(input("x value minimum is greater than x value max, please try again. x min value: "))
         x_max = int(input("Please enter max x value: "))
-    y_min = int(input("Please enter min y value: "))
-    y_max = int(input("Please enter max y value: "))
+
     while y_min > y_max:
         y_min = int(input("y value minimum is greater than y value max, please try again. y min value: "))
         y_max = int(input("Please enter max y value: "))
@@ -865,13 +872,24 @@ if skip_align == 'n' or skip_align == 'N':
     #     else:
     #         print(all_factors[i])
     print('------------------------------------------------------------------------------')
-    rows = int(input("Please enter in the desired number of rows: "))
-    cols = int(input("Please enter in the desired number of columns: "))
+    while True:
+        try:
+            rows = int(input("Please enter in the desired number of rows: "))
+            cols = int(input("Please enter in the desired number of columns: "))
+        except ValueError:
+            print('Not valid integers, please try again.')
+            continue
+        break
     while rows * cols != num_pts:
-        rows = int(input("Dimensions incompatible please try again. Num rows: "))
-        cols = int(input("Num Cols: "))
+        try:
+            rows = int(input("Dimensions incompatible please try again. Num rows: "))
+            cols = int(input("Num Cols: "))
+        except ValueError:
+            print('Not valid integers, please try again.')
+            continue
+
     #Creates figure, axis objects for subplot
-    fig,ax = plt.subplots(rows,cols,sharex=True,sharey=True)
+    fig,ax = plt.subplots(rows,cols,sharex='all',sharey='all')
     # fig = plt.figure()
     #
     # x_std_max = 0
@@ -1045,7 +1063,7 @@ if skip_align == 'n' or skip_align == 'N':
     fig.suptitle('Chromatogram Peaks')
     fig.text(0.04,0.5,'RFU', va='center', rotation='vertical')
 
-    # fig.show()
+    #plt.show()
 
 
     print()
@@ -1070,7 +1088,7 @@ if skip_align == 'n' or skip_align == 'N':
     if do_threed == 'y':
         pass
     else:
-        fig.show()
+        plt.show()
         sys.exit()
     fig2 = plt.figure()
     ax2 = plt.axes(projection='3d')
@@ -1175,7 +1193,7 @@ if skip_align == 'n' or skip_align == 'N':
         y_values_non_std = np.append(y_values_non_std, y_values_append_values)
         z_values_non_std = np.append(z_values_non_std, z_values_append_values)
         x_values_time_non_std = np.append(x_values_time_non_std, x_values_time_append_values)
-        print(len(y_values_non_std))
+        #print(len(y_values_non_std))
 
       else:
         y_values_append_values = np.arange(x_min , x_min - diff + 1)
@@ -1192,7 +1210,7 @@ if skip_align == 'n' or skip_align == 'N':
         z_values_non_std = x_values_non_std[x_min:x_min + len(y_values_non_std)]
         x_values_time_non_std = [float(time_peak)] * len(y_values_non_std)
         #print(b)
-        print(len(y_values_non_std))
+        #print(len(y_values_non_std))
         z_values_non_std = np.append(z_values_non_std, z_values_append_values)
         x_values_time_non_std = np.append(x_values_time_non_std, x_values_time_append_values)
 
@@ -1231,8 +1249,14 @@ if skip_align == 'n' or skip_align == 'N':
     # #Subtracts difference from array (vectorization)
     # array -= diff
 
-    fig.show()
-    fig2.show()
+    # fig.show()
+    # fig2.show()
+
+    plt.show()
+    plt.close(fig)
+    plt.close(fig2)
+    sys.exit()
+
 
 
 
