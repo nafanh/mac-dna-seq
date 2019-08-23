@@ -14,6 +14,8 @@ from pathlib import Path
 import traceback
 
 
+#Location coordinates of mac computer = 5120 x 2880
+# For pc = 1980 x 1020 , so use something within those bounds
 # Sets visualizations for seaborn
 # sns.set(rc={'axes.facecolor':'lightblue'})
 # Gets a number from string and sorts it into a list
@@ -61,7 +63,7 @@ while True:
     if values['_ASK_'] == 'no' or values['_ASK_'] == 'yes':
         break
     else:
-        sg.PopupError('Invalid input, please try again')
+        sg.PopupError('Invalid input, please try again', title='Error')
 
 if event is 'Submit':
     window.Close()
@@ -108,7 +110,7 @@ if skip_frac == 'no' or skip_frac == 'No':
             try:
                 text = values_first['_DIR_']
                 if not text:
-                    sg.Popup('txt file not entered')
+                    sg.Popup('txt file not entered',title='Error')
                 file = open(text, 'r')
                 file.readline()
                 second_line = file.readline()
@@ -118,31 +120,31 @@ if skip_frac == 'no' or skip_frac == 'No':
                 window_first.Element('_OUTPUT_').Update(txt_file_name)
                 file.close()
             except FileNotFoundError:
-                sg.Popup('Invalid file destination')
+                sg.Popup('Invalid file destination',title='Error')
             except OSError:
-                sg.Popup('Not valid destination')
+                sg.Popup('Not valid destination',title='Error')
             except UnicodeDecodeError:
-                sg.Popup('Not valid .txt file')
+                sg.Popup('Not valid .txt file',title='Error')
 
         if event_first == 'Submit Number':
             try:
                 time_underscore = int(values_first['_TIME_'])
             except ValueError:
-                sg.Popup('Not valid integer please try again.')
+                sg.Popup('Not valid integer please try again.',title='Error')
                 continue
             check_under_length = len(txt_file_name_u)
             if check_under_length < time_underscore:
-                sg.Popup('Invalid underscore number. Either negative or greater than total num of underscores')
+                sg.Popup('Invalid underscore number. Either negative or greater than total num of underscores',title='Error')
                 continue
             try:
                 txt_file_name_u_test = txt_file_name_u[time_underscore]
             except:
-                sg.Popup('Underscore value is greater than total number of underscores. Please try again.')
+                sg.Popup('Underscore value is greater than total number of underscores. Please try again.',title='Error')
                 continue
 
             if string_alpha_check(txt_file_name_u[time_underscore]) or ('\\' in txt_file_name_u[time_underscore]) or \
                     ('-' in txt_file_name_u[time_underscore]):
-                sg.Popup('Underscore value entered gives invalid time, please try again.')
+                sg.Popup('Underscore value entered gives invalid time, please try again.',title='Error')
                 continue
 
             try:
@@ -151,7 +153,7 @@ if skip_frac == 'no' or skip_frac == 'No':
                 if time_underscore != 'None':
                     break
             except:
-                sg.Popup('No valid number. Please try again')
+                sg.Popup('No valid number. Please try again',title='Error')
 
     # if string_alpha_check(time_u):
     #     # time_u = sg.PopupGetText('Not valid integer please try again')
@@ -276,18 +278,18 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print('---------------------------------------\n')
         # print(df_int_all)
         sg.PopupScrolled('These are all the internal std. peaks', '--------------------------------', df_int_all,
-                         non_blocking=True)
+                         non_blocking=True,location=(300,500),title='All Internal Std. Peaks')
         print()
 
         quit_prompt = sg.PopupGetText('If the time values are not consistent with what you want,'
                                       ' please type ''Quit'' and rerun the script with the correct'
-                                      ' input. Else press ''Cancel''')
+                                      ' input. Else press ''Cancel''',title='Continue or Exit')
         if quit_prompt == 'Quit' or quit_prompt == '':
             sys.exit()
         # while True:
 
         min_height = sg.PopupGetText("Please enter the minimum height (make sure bigger than int std desired)",
-                                     "Minimum Height")
+                                     "Minimum Height", )
         if min_height == None or min_height == 'Cancel':
             sys.exit()
 
@@ -332,7 +334,7 @@ if skip_frac == 'no' or skip_frac == 'No':
 
         sg.PopupScrolled('These are the internal std. peaks after filtering', '------------------------------',
                          df_int_std,
-                         non_blocking=True)
+                         non_blocking=True,location=(200,500))
         # makes list of int standard data points
         int_stdlist = df_int_std['Data Point'].tolist()
 
@@ -623,7 +625,7 @@ if skip_frac == 'no' or skip_frac == 'No':
         sg.PopupScrolled(
             'This is the table for fractional area vs. size. Please analyze to see if you want to delete outliers.',
             '-----------------------------------------------------------------------------',
-            n, non_blocking=True)
+            n, non_blocking=True, location=(0,400))
 
         # remove_datapt_quest = input('Do you want to delete a polymer? If so, please enter ''y'', else enter in ''n'': ')
         remove_datapt_quest = sg.PopupGetText('Do you want to delete a polymer? If so, please enter ''y'', press enter '
@@ -635,6 +637,8 @@ if skip_frac == 'no' or skip_frac == 'No':
                 break
             while remove_datapt not in n.columns:
                 remove_datapt = sg.PopupGetText('Polymer not in table, please try again')
+                if remove_datapt == None:
+                    break
             del n[remove_datapt]
             del n[remove_datapt + '/Total']
             headers_list.remove(remove_datapt)
@@ -797,7 +801,7 @@ if skip_frac == 'no' or skip_frac == 'No':
                          '--------------------------------------------------------',
                          diff_list(int_std_dist),
                          '--------------------------------------------------------',
-                         int_std_dist, non_blocking=True)
+                         int_std_dist, non_blocking=True,location=(1000,500))
         # Creates a dataframe that filters out the internal standards and any peaks below certain threshold height
         polymer = size(int_std_dist)
         # print('Here is the Data (Filters out heights below threshold. Note no internal std):')
