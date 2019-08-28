@@ -14,6 +14,53 @@ from pathlib import Path
 import traceback
 
 
+def table_example(df,window_name):
+    # sg.SetOptions(auto_size_buttons=True)
+    # filename = sg.PopupGetFile('filename to open', no_window=True, file_types=(("CSV Files", "*.csv"),))
+    # --- populate table with file contents --- #
+    # if filename == '':
+    #     sys.exit(69)
+    data = []
+    header_list = list(df.columns.values)
+    #button = sg.PopupYesNo('Does this file have column names already?')
+    #if filename is not None:
+    try:
+        #df = pd.read_csv(filename, sep=',', engine='python', header=None)  # Header=None means you directly pass the columns names to the dataframe
+        data = df.values.tolist()               # read everything else into a list of rows
+        #if button == 'Yes':                     # Press if you named your columns in the csv
+        #header_list = df.iloc[0].tolist()   # Uses the first row (which should be column names) as columns names
+        #data = df[1:].values.tolist()       # Drops the first row in the table (otherwise the header names and the first row will be the same)
+        # elif button == 'No':                    # Press if you didn't name the columns in the csv
+        #     header_list = ['column' + str(x) for x in range(len(data[0]))]  # Creates columns names for each column ('column0', 'column1', etc)
+    except:
+        sg.PopupError('Error reading file')
+        sys.exit(69)
+
+    layout = [[sg.Table(values=data, headings=header_list, display_row_numbers=True,
+                            auto_size_columns=False, num_rows=min(25,len(data)))]]
+
+
+    window = sg.Window(window_name, grab_anywhere=False)
+    event, values = window.Layout(layout).Read(timeout=0)
+
+    #sys.exit(69)
+
+#table_example()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #Location coordinates of mac computer = 5120 x 2880
 # For pc = 1980 x 1020 , so use something within those bounds
 # Sets visualizations for seaborn
@@ -277,8 +324,9 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print("These are all the internal std. peaks\n")
         # print('---------------------------------------\n')
         # print(df_int_all)
-        sg.PopupScrolled('These are all the internal std. peaks', '--------------------------------', df_int_all,
-                         non_blocking=True,location=(300,500),title='All Internal Std. Peaks')
+        table_example(df_int_all,'All Internal Std. Peaks')
+        # #sg.PopupScrolled('These are all the internal std. peaks', '--------------------------------', df_int_all,
+        #                  non_blocking=True,location=(300,500),title='All Internal Std. Peaks')
         print()
 
         quit_prompt = sg.PopupGetText('If the time values are not consistent with what you want,'
@@ -332,9 +380,10 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print(df_int_std)
         # print()
 
-        sg.PopupScrolled('These are the internal std. peaks after filtering', '------------------------------',
-                         df_int_std,
-                         non_blocking=True,location=(200,500),title='Post Filter Int. Std. Peaks')
+        table_example(df_int_std,'Internal std. peaks after filtering')
+        # sg.PopupScrolled('These are the internal std. peaks after filtering', '------------------------------',
+        #                  df_int_std,
+        #                  non_blocking=True,location=(200,500),title='Post Filter Int. Std. Peaks')
         # makes list of int standard data points
         int_stdlist = df_int_std['Data Point'].tolist()
 
@@ -388,7 +437,8 @@ if skip_frac == 'no' or skip_frac == 'No':
     def diff_list(df):
         diff_set = df['Diff'].tolist()
         diff_set = sorted(list(set(diff_set)))
-        return pd.Series(diff_set)
+        #return pd.Series(diff_set) changes to where stored in dataframe
+        return pd.DataFrame(diff_set,columns=['Differences'])
 
 
     # Function that outputs the polymer size (ex: 28mer)
@@ -622,10 +672,11 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print('This is the table for fractional area vs. size. Please analyze to see if you want to delete outliers.')
         # print('-----------------------------------------------------------------------------')
         # print(n)
-        sg.PopupScrolled(
-            'This is the table for fractional area vs. size. Please analyze to see if you want to delete outliers.',
-            '-----------------------------------------------------------------------------',
-            n, non_blocking=True, location=(0,400),title='Fractional Area vs. Size Table')
+        table_example(n,'Preliminary Frac Area v Size')
+        # sg.PopupScrolled(
+        #     'This is the table for fractional area vs. size. Please analyze to see if you want to delete outliers.',
+        #     '-----------------------------------------------------------------------------',
+        #     n, non_blocking=True, location=(0,400),title='Fractional Area vs. Size Table')
 
         # remove_datapt_quest = input('Do you want to delete a polymer? If so, please enter ''y'', else enter in ''n'': ')
         remove_datapt_quest = sg.PopupGetText('Do you want to delete a polymer? If so, please enter ''y'', press enter '
@@ -799,19 +850,22 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print('--------------------------------------------------------')
         # print(diff_list(int_std_dist))
         # print(int_std_dist)
-        sg.PopupScrolled('Here are the difference ranges between peak and internal standard (multiplied by 100): ',
-                         '--------------------------------------------------------',
-                         diff_list(int_std_dist),
-                         '--------------------------------------------------------',
-                         int_std_dist, non_blocking=True,location=(1000,500),title='Difference Ranges')
+        table_example(diff_list(int_std_dist),'Difference ranges (multiplied by 100)')
+        table_example(int_std_dist,'Table with Difference ranges')
+        # sg.PopupScrolled('Here are the difference ranges between peak and internal standard (multiplied by 100): ',
+        #                  '--------------------------------------------------------',
+        #                  diff_list(int_std_dist),
+        #                  '--------------------------------------------------------',
+        #                  int_std_dist, non_blocking=True,location=(1000,500),title='Difference Ranges')
         # Creates a dataframe that filters out the internal standards and any peaks below certain threshold height
         polymer = size(int_std_dist)
         # print('Here is the Data (Filters out heights below threshold. Note no internal std):')
         # print('--------------------------------------------------------')
         # print(polymer)
-        sg.PopupScrolled('Here is the Data (Filters out heights below threshold. Note no internal std):',
-                         '--------------------------------------------------------',
-                         polymer, non_blocking=True,title='Table with Difference Ranges')
+        table_example(polymer,'Table with Difference Ranges')
+        # sg.PopupScrolled('Here is the Data (Filters out heights below threshold. Note no internal std):',
+        #                  '--------------------------------------------------------',
+        #                  polymer, non_blocking=True,title='Table with Difference Ranges')
         # get_size_values(polymer)
         print()
 
@@ -820,8 +874,9 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print('Here is the data (Before concentration fix):')
         # print('--------------------------------------------------------')
         # print(a)
-        sg.PopupScrolled('Here is the data (Before conc. fix', '----------------------------------------',
-                         a, non_blocking=True,title='Before conc. fix')
+        table_example(a,'Frac area v size before conc. fix')
+        # #sg.PopupScrolled('Here is the data (Before conc. fix', '----------------------------------------',
+        #                  a, non_blocking=True,title='Before conc. fix')
 
         # Gets the time, length, and fractional area into lists
         time = get_time_values(a)
@@ -839,9 +894,10 @@ if skip_frac == 'no' or skip_frac == 'No':
         # print('Here is the updated table data (after concentration fix):')
         # print('--------------------------------------------------------')
         # print(fix)
-        sg.PopupScrolled('Here is the updated table data (after concentration fix):',
-                         '--------------------------------------------------------',
-                         fix, non_blocking=True,title='After Conc. Fix')
+        table_example(fix,'Frac area v size after conc. fix')
+        # sg.PopupScrolled('Here is the updated table data (after concentration fix):',
+        #                  '--------------------------------------------------------',
+        #                  fix, non_blocking=True,title='After Conc. Fix')
 
         # Plots the size, fractional area, and length using matplotlib
         # Returns a bar graph with time as the label
